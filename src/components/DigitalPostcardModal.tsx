@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Artisan } from '../types';
-import { X, Check, Copy, Download, Share2, MapPin, CheckCircle2, QrCode } from 'lucide-react';
+import { X, Check, Copy, Download, Share2, MapPin, CheckCircle2, Compass, ShieldCheck } from 'lucide-react';
 
 interface DigitalPostcardModalProps {
   artisan: Artisan;
@@ -33,10 +33,10 @@ export const DigitalPostcardModal: React.FC<DigitalPostcardModalProps> = ({
   const handleShareWhatsApp = () => {
     const text = encodeURIComponent(
       isFlora
-        ? `Check out verified botanical steward ${artisan.name} (${artisan.craftTitle}) on Geo-Origin! Preserving rare native flora in ${artisan.locationName}. Explore: ${window.location.href}`
+        ? `Check out verified botanical steward ${artisan.name} (${artisan.craftTitle}) on Heritage Hunt! Preserving rare native flora in ${artisan.locationName}. Explore: ${window.location.href} #HeritageHunt`
         : isAgri
-        ? `Check out verified heirloom farmer ${artisan.name} (${artisan.craftTitle}) on Geo-Origin! Preserving ancestral seeds in ${artisan.locationName}. Explore: ${window.location.href}`
-        : `Check out verified artisan ${artisan.name} (${artisan.craftTitle}) on Geo-Origin! Preserving authentic heritage in ${artisan.locationName}. Explore: ${window.location.href}`
+        ? `Check out verified heirloom farmer ${artisan.name} (${artisan.craftTitle}) on Heritage Hunt! Preserving ancestral seeds in ${artisan.locationName}. Explore: ${window.location.href} #HeritageHunt`
+        : `Check out verified artisan ${artisan.name} (${artisan.craftTitle}) on Heritage Hunt! Preserving authentic heritage in ${artisan.locationName}. Explore: ${window.location.href} #HeritageHunt`
     );
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
     setShareFeedback('Opened WhatsApp sharing dialog');
@@ -46,10 +46,10 @@ export const DigitalPostcardModal: React.FC<DigitalPostcardModalProps> = ({
   const handleShareInstagram = () => {
     // Copy postcard text and alert user
     const text = isFlora
-      ? `Verified Native Flora Custodian: ${artisan.name} • ${artisan.artForm} from ${artisan.locationName} #GeoOrigin #BotanicalHeritage #NativeFlora #Jharkhand`
+      ? `Verified Native Flora Custodian: ${artisan.name} • ${artisan.artForm} from ${artisan.locationName} #HeritageHunt #BotanicalHeritage #NativeFlora #Jharkhand`
       : isAgri
-      ? `Verified Heirloom Farmer: ${artisan.name} • ${artisan.artForm} from ${artisan.locationName} #GeoOrigin #AgroBiodiversity #HeirloomSeeds`
-      : `Verified Heritage Artisan: ${artisan.name} • ${artisan.artForm} from ${artisan.locationName} #GeoOrigin #HeritageArt #Virasat`;
+      ? `Verified Heirloom Farmer: ${artisan.name} • ${artisan.artForm} from ${artisan.locationName} #HeritageHunt #AgroBiodiversity #HeirloomSeeds`
+      : `Verified Heritage Artisan: ${artisan.name} • ${artisan.artForm} from ${artisan.locationName} #HeritageHunt #HeritageArt #Virasat`;
     navigator.clipboard.writeText(text);
     setShareFeedback('Postcard caption copied! Ready to paste on Instagram.');
     setTimeout(() => setShareFeedback(null), 3500);
@@ -108,13 +108,13 @@ export const DigitalPostcardModal: React.FC<DigitalPostcardModalProps> = ({
       ctx.fillText(`📍 ${artisan.locationName}`, 80, 1680);
 
       // Brand mark
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.font = 'bold 32px Inter, sans-serif';
-      ctx.fillText('Geo-Origin • Digital Heritage Registry', 80, 1780);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.font = 'bold 34px Inter, sans-serif';
+      ctx.fillText('Heritage Hunt • Crowd-Sourced Cultural Registry', 80, 1780);
 
       // Convert to download
       const link = document.createElement('a');
-      link.download = `${artisan.id}-geo-origin-postcard.png`;
+      link.download = `${artisan.id}-heritage-hunt-postcard.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
       setDownloading(false);
@@ -125,7 +125,7 @@ export const DigitalPostcardModal: React.FC<DigitalPostcardModalProps> = ({
     bgImg.onerror = () => {
       // Fallback simple download
       const link = document.createElement('a');
-      link.download = `${artisan.id}-geo-origin-postcard.png`;
+      link.download = `${artisan.id}-heritage-hunt-postcard.png`;
       link.href = artisan.postcardImageUrl;
       link.click();
       setDownloading(false);
@@ -186,7 +186,7 @@ export const DigitalPostcardModal: React.FC<DigitalPostcardModalProps> = ({
                   </div>
                 </div>
 
-                {/* Footer Area: Map Snippet & QR Code */}
+                {/* Footer Area: Map Snippet & Heritage Hunt GPS Seal */}
                 <div className="flex justify-between items-end gap-2.5">
                   {/* Small Map Snippet */}
                   <div className="bg-white/20 backdrop-blur-md rounded-lg p-1 flex-1 h-[64px] border border-white/30 flex items-center justify-center overflow-hidden relative">
@@ -198,13 +198,12 @@ export const DigitalPostcardModal: React.FC<DigitalPostcardModalProps> = ({
                     <MapPin className="w-5 h-5 text-[#974400] relative z-10 drop-shadow-sm" />
                   </div>
 
-                  {/* QR Code */}
-                  <div className="bg-white p-1.5 rounded-lg shadow-md w-[64px] h-[64px] flex-shrink-0 flex items-center justify-center border border-white/50">
-                    <img
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuDv7tj5w5kpBvR3qujzxAeWfouGpf_fhrBaxHNku49JjZITjELvVwmNuFo09KxYf_D-RbMRAlKHMZs0iRwPcQPTaf1LMtdNNcJnkJg_Ht3TtTri9lHazCNABNYvZrZ96xSchQ6QsEhdA1rgwx4gj1vEY39hz-qZsuSSuXJ08b1_YF1rAGDQVNf0TkqbkupgcJRdWM01d_UP0MyLj91arAaePL8boP0es7YlJaTHzvEycK4quNCJ6WU"
-                      alt="Scannable QR code"
-                      className="w-full h-full object-contain"
-                    />
+                  {/* Heritage Hunt Certified Stamp */}
+                  <div className="bg-[#974400] text-white p-2 rounded-lg shadow-md w-[68px] h-[64px] flex-shrink-0 flex flex-col items-center justify-center border border-[#ffdbc9]/50 text-center">
+                    <ShieldCheck className="w-5 h-5 text-[#92fa83]" />
+                    <span className="text-[8px] font-bold uppercase tracking-tighter mt-0.5 leading-tight">
+                      Heritage Hunt Verified
+                    </span>
                   </div>
                 </div>
               </div>

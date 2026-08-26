@@ -6,13 +6,11 @@ import { Search, SlidersHorizontal, MapPin, CheckCircle2, ChevronRight, Palette,
 interface MapViewProps {
   artisans: Artisan[];
   onSelectArtisan: (artisan: Artisan) => void;
-  onOpenScanner: () => void;
 }
 
 export const MapView: React.FC<MapViewProps> = ({
   artisans,
   onSelectArtisan,
-  onOpenScanner,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'Heritage Arts' | 'Agriculture' | 'Indigenous Flora'>('all');

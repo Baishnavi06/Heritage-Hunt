@@ -18,8 +18,8 @@ interface DiscoverViewProps {
   artisans: Artisan[];
   onSelectArtisan: (artisan: Artisan) => void;
   onExploreMapClick: () => void;
-  onJoinContributorClick: () => void;
-  onOpenScanner: () => void;
+  onPinCreatorClick: () => void;
+  onRegisterArtisanClick: () => void;
   onViewAllCreators: () => void;
 }
 
@@ -27,8 +27,8 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
   artisans,
   onSelectArtisan,
   onExploreMapClick,
-  onJoinContributorClick,
-  onOpenScanner,
+  onPinCreatorClick,
+  onRegisterArtisanClick,
   onViewAllCreators,
 }) => {
   const [categoryFilter, setCategoryFilter] = React.useState<
@@ -42,38 +42,41 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
         <div className="max-w-4xl mx-auto space-y-6 z-10">
           {/* Pill Badge */}
           <div className="inline-block px-4 py-1.5 rounded-full bg-[#186a22]/10 text-[#186a22] text-xs font-semibold tracking-wider uppercase border border-[#186a22]/20">
-            Cultural Preservation Platform
+            Heritage Hunt • Crowd-Sourced Cultural Discovery
           </div>
 
           {/* Big Editorial Headline */}
           <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-[64px] font-bold text-[#231914] leading-[1.15] tracking-tight">
             Discover the Roots of India.
             <br />
-            <span className="text-[#974400]">Authenticated by You.</span>
+            <span className="text-[#974400]">Mapped &amp; Scouted by You.</span>
           </h1>
 
           {/* Subtitle */}
           <p className="font-sans text-base sm:text-lg text-[#564338] max-w-2xl mx-auto leading-relaxed">
-            The crowd-sourced digital identity platform for rural artisans,
-            indigenous farmers, and rare botanical flora keepers. Connecting physical craft and harvest to verified digital heritage.
+            The community-driven cultural mapping registry for master artisans,
+            heirloom cultivators, and rare native flora stewards across rural India.
           </p>
 
-          {/* Hero CTAs */}
+          {/* Two Primary Hero CTAs */}
           <div className="pt-6 flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
+            {/* Button 1: Pin a Local Creator */}
             <button
-              id="hero-explore-map-btn"
-              onClick={onExploreMapClick}
-              className="w-full sm:w-auto bg-[#974400] text-white px-8 py-3.5 rounded-full font-sans text-sm font-semibold hover:bg-[#bb5808] transition-all shadow-md active:scale-95 cursor-pointer"
+              id="hero-pin-creator-btn"
+              onClick={onPinCreatorClick}
+              className="w-full sm:w-auto bg-[#974400] text-white px-8 py-3.5 rounded-full font-sans text-sm font-bold hover:bg-[#bb5808] transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-2"
             >
-              Explore the Map
+              <MapPin className="w-4 h-4 text-[#ffdbc9]" />
+              <span>Pin a Local Creator</span>
             </button>
 
+            {/* Button 2: Artisan Self-Registration Portal */}
             <button
-              id="hero-join-contributor-btn"
-              onClick={onJoinContributorClick}
-              className="w-full sm:w-auto bg-transparent border border-[#8a7266] px-8 py-3.5 rounded-full font-sans text-sm font-semibold text-[#231914] hover:bg-[#feeae0] transition-colors cursor-pointer active:scale-95"
+              id="hero-artisan-register-btn"
+              onClick={onRegisterArtisanClick}
+              className="w-full sm:w-auto bg-white/80 backdrop-blur-xs border-2 border-[#974400] px-8 py-3.5 rounded-full font-sans text-sm font-bold text-[#974400] hover:bg-[#fff1eb] transition-all cursor-pointer active:scale-95 shadow-2xs"
             >
-              Join as Contributor
+              Are you an Artisan? Register Here
             </button>
           </div>
         </div>

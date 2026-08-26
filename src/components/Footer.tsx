@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface FooterProps {
-  onNavigate: (view: 'discover' | 'map' | 'creators' | 'about') => void;
+  onNavigate: (view: 'discover' | 'map' | 'creators' | 'about' | 'buyer-profile' | 'artisan-register') => void;
   onJoinContributor: () => void;
 }
 
@@ -16,28 +16,28 @@ export const Footer: React.FC<FooterProps> = ({
         <div className="text-center md:text-left">
           <button
             onClick={() => onNavigate('discover')}
-            className="font-serif text-2xl font-bold text-[#974400] hover:opacity-90 transition-opacity"
+            className="font-serif text-2xl font-bold text-[#974400] hover:opacity-90 transition-opacity cursor-pointer"
           >
-            Geo-Origin
+            Heritage Hunt
           </button>
           <p className="text-xs text-[#564338] mt-1">
-            Preserving Heritage Through Community Verification.
+            Crowd-Sourced Cultural Discovery &amp; Geospatial Heritage Registry.
           </p>
         </div>
 
         {/* Footer Links */}
         <div className="flex flex-wrap justify-center gap-6 text-xs font-semibold text-[#564338]">
           <button
-            onClick={() => onNavigate('about')}
+            onClick={() => onNavigate('discover')}
             className="hover:text-[#974400] transition-colors cursor-pointer"
           >
-            Our Roots
+            Discover
           </button>
           <button
-            onClick={onJoinContributor}
+            onClick={() => onNavigate('map')}
             className="hover:text-[#974400] transition-colors cursor-pointer"
           >
-            Join as Contributor
+            Heatmap
           </button>
           <button
             onClick={() => onNavigate('creators')}
@@ -46,16 +46,28 @@ export const Footer: React.FC<FooterProps> = ({
             Verified Creators
           </button>
           <button
+            onClick={() => onNavigate('artisan-register')}
+            className="text-[#974400] hover:underline transition-colors cursor-pointer font-bold"
+          >
+            Artisan Registration
+          </button>
+          <button
+            onClick={() => onNavigate('buyer-profile')}
+            className="hover:text-[#974400] transition-colors cursor-pointer"
+          >
+            Scout Impact Profile
+          </button>
+          <button
             onClick={() => onNavigate('about')}
             className="hover:text-[#974400] transition-colors cursor-pointer"
           >
-            Trust &amp; Safety
+            Our Mission
           </button>
         </div>
 
         {/* Copyright */}
         <div className="text-xs text-[#8a7266] text-center md:text-right">
-          &copy; {new Date().getFullYear()} Geo-Origin. All rights reserved.
+          &copy; {new Date().getFullYear()} Heritage Hunt. All rights reserved.
         </div>
       </div>
     </footer>

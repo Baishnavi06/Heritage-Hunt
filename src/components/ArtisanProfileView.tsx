@@ -10,7 +10,6 @@ import {
   Brush,
   ArrowRight,
   Sparkles,
-  QrCode,
   Star,
   MessageSquare,
   Compass,
@@ -25,7 +24,6 @@ interface ArtisanProfileViewProps {
   onOpenPostcardModal: () => void;
   onOpenContactModal: () => void;
   onOpenEncyclopediaModal: () => void;
-  onOpenScanner: () => void;
 }
 
 export const ArtisanProfileView: React.FC<ArtisanProfileViewProps> = ({
@@ -33,7 +31,6 @@ export const ArtisanProfileView: React.FC<ArtisanProfileViewProps> = ({
   onOpenPostcardModal,
   onOpenContactModal,
   onOpenEncyclopediaModal,
-  onOpenScanner,
 }) => {
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [liked, setLiked] = useState(false);
@@ -359,16 +356,18 @@ export const ArtisanProfileView: React.FC<ArtisanProfileViewProps> = ({
         {showAllReviews && (
           <div className="mt-8 bg-white p-6 sm:p-8 rounded-2xl border border-[#ddc1b3]/40 card-shadow animate-in fade-in duration-300">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-serif text-2xl font-bold text-[#231914]">
-                Verified Buyer Logs &amp; Stories
-              </h3>
-              <button
-                onClick={onOpenScanner}
-                className="bg-[#974400] text-white text-xs font-semibold px-4 py-2 rounded-full hover:bg-[#bb5808] transition-colors flex items-center gap-1.5 cursor-pointer"
-              >
-                <QrCode className="w-3.5 h-3.5" />
-                <span>Add Your Verification</span>
-              </button>
+              <div>
+                <h3 className="font-serif text-2xl font-bold text-[#231914]">
+                  Verified Scout Logs &amp; Field Stories
+                </h3>
+                <p className="text-xs text-[#564338]">
+                  Photographic proof and reviews documented by Heritage Scouts on-site.
+                </p>
+              </div>
+              <div className="bg-[#ebfbee] text-[#006e0c] text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-[#92fa83]">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>100% GPS Verified</span>
+              </div>
             </div>
 
             <div className="space-y-4">

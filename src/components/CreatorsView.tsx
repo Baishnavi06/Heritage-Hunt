@@ -5,13 +5,11 @@ import { Search, CheckCircle2, ArrowRight, ShieldCheck, MapPin, Sparkles, Palett
 interface CreatorsViewProps {
   artisans: Artisan[];
   onSelectArtisan: (artisan: Artisan) => void;
-  onOpenScanner: () => void;
 }
 
 export const CreatorsView: React.FC<CreatorsViewProps> = ({
   artisans,
   onSelectArtisan,
-  onOpenScanner,
 }) => {
   const [activeCategory, setActiveCategory] = useState<'all' | 'Heritage Arts' | 'Agriculture' | 'Indigenous Flora'>('all');
   const [search, setSearch] = useState('');

@@ -1,6 +1,6 @@
 {
-  "name": "Geo-Origin",
-  "description": "The crowd-sourced digital identity platform for rural artisans and indigenous farmers, connecting physical craft to verified digital heritage.",
+  "name": "Heritage Hunt",
+  "description": "The crowd-sourced cultural mapping platform discovering rural artisans, heirloom cultivators, and native flora stewards.",
   "requestFramePermissions": ["camera"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

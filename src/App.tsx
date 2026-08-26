@@ -7,8 +7,9 @@ import { ArtisanProfileView } from './components/ArtisanProfileView';
 import { MapView } from './components/MapView';
 import { CreatorsView } from './components/CreatorsView';
 import { AboutView } from './components/AboutView';
+import { BuyerImpactProfileView } from './components/BuyerImpactProfileView';
+import { ArtisanRegisterView } from './components/ArtisanRegisterView';
 import { Footer } from './components/Footer';
-import { QRVerificationModal } from './components/QRVerificationModal';
 import { DigitalPostcardModal } from './components/DigitalPostcardModal';
 import { ContactArtisanModal } from './components/ContactArtisanModal';
 import { RootsEncyclopediaModal } from './components/RootsEncyclopediaModal';
@@ -18,12 +19,11 @@ export function App() {
   const [artisansList, setArtisansList] = useState<Artisan[]>(ARTISANS);
   const [selectedArtisan, setSelectedArtisan] = useState<Artisan>(ARTISANS[0]);
   const [currentView, setCurrentView] = useState<
-    'discover' | 'map' | 'creators' | 'about' | 'artisan-profile'
+    'discover' | 'map' | 'creators' | 'about' | 'artisan-profile' | 'buyer-profile' | 'artisan-register'
   >('discover');
   const [language, setLanguage] = useState<'EN' | 'HI'>('EN');
 
   // Modals state
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isPostcardOpen, setIsPostcardOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isEncyclopediaOpen, setIsEncyclopediaOpen] = useState(false);
@@ -39,55 +39,17 @@ export function App() {
     setCurrentView('artisan-profile');
   };
 
-  const handleVerificationPublished = (newReview: {
-    author: string;
-    rating: number;
-    text: string;
-    photoUrl?: string;
-  }) => {
-    setArtisansList((prev) =>
-      prev.map((art) => {
-        if (art.id === selectedArtisan.id) {
-          const updatedReviews = [
-            {
-              id: `rev-${Date.now()}`,
-              author: newReview.author,
-              date: 'Just now',
-              rating: newReview.rating,
-              text: newReview.text,
-              verifiedGps: `${art.district}, Jharkhand (GPS Verified On-Site)`,
-              photoUrl: newReview.photoUrl,
-            },
-            ...art.reviews,
-          ];
-          const newContributionsCount = art.contributionsCount + 1;
-          const newVerifiedVisits = art.verifiedVisits + 1;
-
-          const updated = {
-            ...art,
-            reviews: updatedReviews,
-            contributionsCount: newContributionsCount,
-            verifiedVisits: newVerifiedVisits,
-            trustScore: Math.min(100, art.trustScore + 1),
-          };
-
-          setSelectedArtisan(updated);
-          return updated;
-        }
-        return art;
-      })
-    );
+  const handleRegisterSuccess = (newArtisan: Artisan) => {
+    setArtisansList((prev) => [newArtisan, ...prev]);
+    setSelectedArtisan(newArtisan);
   };
 
   return (
     <div className="min-h-screen bg-[#fff8f6] text-[#231914] flex flex-col font-sans selection:bg-[#ffdbc9] selection:text-[#763400]">
       {/* Top Navbar & Mobile Bottom Nav */}
       <Navbar
-        currentView={
-          currentView === 'artisan-profile' ? 'creators' : currentView
-        }
+        currentView={currentView}
         onNavigate={(view) => setCurrentView(view)}
-        onOpenScanner={() => setIsScannerOpen(true)}
         language={language}
         onToggleLanguage={() =>
           setLanguage((prev) => (prev === 'EN' ? 'HI' : 'EN'))
@@ -108,8 +70,8 @@ export function App() {
                 setCurrentView('map');
               }
             }}
-            onJoinContributorClick={() => setIsContributorOpen(true)}
-            onOpenScanner={() => setIsScannerOpen(true)}
+            onPinCreatorClick={() => setIsContributorOpen(true)}
+            onRegisterArtisanClick={() => setCurrentView('artisan-register')}
             onViewAllCreators={() => setCurrentView('creators')}
           />
         )}
@@ -120,7 +82,6 @@ export function App() {
             onOpenPostcardModal={() => setIsPostcardOpen(true)}
             onOpenContactModal={() => setIsContactOpen(true)}
             onOpenEncyclopediaModal={() => setIsEncyclopediaOpen(true)}
-            onOpenScanner={() => setIsScannerOpen(true)}
           />
         )}
 
@@ -128,7 +89,6 @@ export function App() {
           <MapView
             artisans={artisansList}
             onSelectArtisan={handleSelectArtisan}
-            onOpenScanner={() => setIsScannerOpen(true)}
           />
         )}
 
@@ -136,14 +96,31 @@ export function App() {
           <CreatorsView
             artisans={artisansList}
             onSelectArtisan={handleSelectArtisan}
-            onOpenScanner={() => setIsScannerOpen(true)}
+          />
+        )}
+
+        {currentView === 'buyer-profile' && (
+          <BuyerImpactProfileView
+            artisans={artisansList}
+            onSelectArtisan={handleSelectArtisan}
+            onExploreMap={() => setCurrentView('map')}
+            onPinCreator={() => setIsContributorOpen(true)}
+          />
+        )}
+
+        {currentView === 'artisan-register' && (
+          <ArtisanRegisterView
+            onRegisterSuccess={handleRegisterSuccess}
+            onExploreMap={() => setCurrentView('map')}
+            onViewCreators={() => setCurrentView('creators')}
           />
         )}
 
         {currentView === 'about' && (
           <AboutView
             onJoinContributor={() => setIsContributorOpen(true)}
-            onOpenScanner={() => setIsScannerOpen(true)}
+            onExploreMap={() => setCurrentView('map')}
+            onRegisterArtisan={() => setCurrentView('artisan-register')}
           />
         )}
       </main>
@@ -155,16 +132,6 @@ export function App() {
       />
 
       {/* ================= MODALS & OVERLAYS ================= */}
-
-      {/* Screen 1: QR Verification Flow (Scanner -> Form -> Success) */}
-      <QRVerificationModal
-        isOpen={isScannerOpen}
-        onClose={() => setIsScannerOpen(false)}
-        artisan={selectedArtisan}
-        onVerificationPublished={handleVerificationPublished}
-        onNavigateToProfile={() => setCurrentView('artisan-profile')}
-        onNavigateToMap={() => setCurrentView('map')}
-      />
 
       {/* Screen 4: Digital Postcard Modal (9:16 Postcard + Sharing) */}
       <DigitalPostcardModal
@@ -186,14 +153,15 @@ export function App() {
         onClose={() => setIsEncyclopediaOpen(false)}
       />
 
-      {/* Contributor Registration Modal */}
+      {/* Contributor / Scout Registration Modal */}
       <ContributorModal
         isOpen={isContributorOpen}
         onClose={() => setIsContributorOpen(false)}
-        onStartScanning={() => setIsScannerOpen(true)}
+        onExploreMap={() => setCurrentView('map')}
       />
     </div>
   );
 }
 
 export default App;
+
