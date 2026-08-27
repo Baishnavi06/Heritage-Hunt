@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Artisan } from '../types';
+import { Artisan, LocalEvent } from '../types';
 import {
   Camera,
   CheckCircle2,
@@ -16,6 +16,8 @@ import {
   Palette,
   Sprout,
   LocateFixed,
+  Radio,
+  Calendar,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -23,12 +25,14 @@ interface ArtisanRegisterViewProps {
   onRegisterSuccess: (newArtisan: Artisan) => void;
   onExploreMap: () => void;
   onViewCreators: () => void;
+  onBroadcastExhibition?: (event: LocalEvent) => void;
 }
 
 export const ArtisanRegisterView: React.FC<ArtisanRegisterViewProps> = ({
   onRegisterSuccess,
   onExploreMap,
   onViewCreators,
+  onBroadcastExhibition,
 }) => {
   const [language, setLanguage] = useState<'EN' | 'HI'>('HI'); // Default to Hindi for rural accessibility
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -41,6 +45,14 @@ export const ArtisanRegisterView: React.FC<ArtisanRegisterViewProps> = ({
   const [craftTitle, setCraftTitle] = useState('');
   const [craftDescription, setCraftDescription] = useState('');
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+  // 🌟 Step 3: Upcoming Exhibitions (Optional) state
+  const [marketName, setMarketName] = useState('');
+  const [exhibitionDates, setExhibitionDates] = useState('');
+  const [isLocationPinned, setIsLocationPinned] = useState(false);
+  const [pinnedCoordinates, setPinnedCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [broadcastToRadar, setBroadcastToRadar] = useState(true);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registeredArtisan, setRegisteredArtisan] = useState<Artisan | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -75,6 +87,20 @@ export const ArtisanRegisterView: React.FC<ArtisanRegisterViewProps> = ({
       photoPrompt: 'Tap here to capture or upload a photo',
       photoNote: 'Clear photo of your handmade creation, farm, or workshop',
       changePhoto: 'Tap to change photo',
+
+      // Step 3 translations
+      step3: 'Upcoming Exhibitions & Local Fairs',
+      optionalBadge: 'Optional Section',
+      step3Subtitle: 'Broadcast where you will be exhibiting or selling this week so nearby buyers and scouts can visit your stall.',
+      marketNameLabel: 'Market / Fair Name',
+      marketNamePlaceholder: 'e.g. Ranchi Saras Shilp Mela, Sohrai Harvest Haat',
+      datesLabel: 'Exhibition Dates / Schedule',
+      datesPlaceholder: 'e.g. This Weekend (Nov 14-16) or Every Sunday (8 AM - 4 PM)',
+      pinLocationBtn: 'Pin Location',
+      pinningMsg: 'Pinning GPS location...',
+      locationPinnedMsg: 'Stall Location Pinned (GPS: 23.38°N, 85.33°E) ✓',
+      broadcastLabel: 'Broadcast my stall location on the live Local Event Radar map this week',
+
       submitBtn: 'Submit Registration & Join Map',
       submitting: 'Registering on Heritage Registry...',
       successTitle: 'Registration Successful!',
@@ -110,6 +136,20 @@ export const ArtisanRegisterView: React.FC<ArtisanRegisterViewProps> = ({
       photoPrompt: 'यहाँ दबाकर फोटो खींचे या चुनें',
       photoNote: 'अपनी हस्तनिर्मित वस्तु या खेत की साफ़ फोटो',
       changePhoto: 'फोटो बदलने के लिए दबाएं',
+
+      // Step 3 translations
+      step3: 'आगामी प्रदर्शनियाँ एवं मेले',
+      optionalBadge: 'वैकल्पिक खंड (Optional)',
+      step3Subtitle: 'प्रसारित करें कि इस सप्ताह आप अपनी कला या उपज कहाँ बेच रहे हैं, ताकि खरीदार सीधे आपके स्टॉल पर आ सकें।',
+      marketNameLabel: 'बाज़ार / मेले / हाट का नाम',
+      marketNamePlaceholder: 'उदा. राँची सरस शिल्प मेला, सोहराई हाट, दीवाली प्रदर्शनी',
+      datesLabel: 'मेले / प्रदर्शनी की तारीख व समय',
+      datesPlaceholder: 'उदा. इस सप्ताहांत (14-16 नवम्बर) या प्रत्येक रविवार',
+      pinLocationBtn: 'दुकान / स्टॉल का स्थान पिन करें',
+      pinningMsg: 'स्थान पिन हो रहा है...',
+      locationPinnedMsg: 'स्टॉल का सटीक स्थान पिन हो गया (GPS: 23.38°N, 85.33°E) ✓',
+      broadcastLabel: 'इस सप्ताह लोकल इवेंट रडार मानचित्र पर मेरी दुकान का स्थान प्रसारित करें',
+
       submitBtn: 'पंजीकरण पूरा करें और मानचित्र से जुड़ें',
       submitting: 'पंजीकरण हो रहा है...',
       successTitle: 'बधाई हो! पंजीकरण सफल रहा!',
@@ -129,6 +169,14 @@ export const ArtisanRegisterView: React.FC<ArtisanRegisterViewProps> = ({
     if (otp === '1234' || otp.trim().length === 4) {
       setOtpVerified(true);
     }
+  };
+
+  const handlePinLocation = () => {
+    setIsLocationPinned(true);
+    setPinnedCoordinates({
+      lat: 23.38 + (Math.random() - 0.5) * 0.1,
+      lng: 85.33 + (Math.random() - 0.5) * 0.1,
+    });
   };
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -171,8 +219,8 @@ export const ArtisanRegisterView: React.FC<ArtisanRegisterViewProps> = ({
       coordinates: {
         x: Math.floor(Math.random() * 40) + 30,
         y: Math.floor(Math.random() * 40) + 30,
-        lat: 23.61 + (Math.random() - 0.5) * 1.5,
-        lng: 85.27 + (Math.random() - 0.5) * 1.5,
+        lat: pinnedCoordinates?.lat || 23.61 + (Math.random() - 0.5) * 1.5,
+        lng: pinnedCoordinates?.lng || 85.27 + (Math.random() - 0.5) * 1.5,
       },
       trustScore: 98,
       trustRating: 4.9,
@@ -209,6 +257,34 @@ export const ArtisanRegisterView: React.FC<ArtisanRegisterViewProps> = ({
         address: `${district} District, Jharkhand`,
       },
     };
+
+    // If artisan broadcasted an upcoming exhibition, create an event on the radar
+    if (marketName.trim() && broadcastToRadar && onBroadcastExhibition) {
+      const exhibitionEvent: LocalEvent = {
+        id: `artisan-event-${Date.now()}`,
+        name: marketName.trim(),
+        category: category === 'Heritage Arts' ? 'Tribal Craft Mela' : 'Agrarian Haat',
+        district,
+        state: 'Jharkhand',
+        venue: isLocationPinned ? `Stall #${Math.floor(Math.random() * 30) + 1}, ${marketName}, ${district}` : `${marketName}, ${district}`,
+        dates: exhibitionDates.trim() || 'This Week',
+        description: `Exhibition stall by registered master creator ${fullName}, presenting authentic ${craftTitle} directly from ${district}.`,
+        coordinates: {
+          x: Math.floor(Math.random() * 40) + 30,
+          y: Math.floor(Math.random() * 40) + 30,
+          lat: pinnedCoordinates?.lat || 23.38,
+          lng: pinnedCoordinates?.lng || 85.33,
+        },
+        featuredCrafts: [craftTitle, category],
+        organizer: `${fullName} (Artisan Stall)`,
+        expectedArtisans: 1,
+        status: 'Happening Now',
+        reportedBy: `${fullName} (Verified Creator)`,
+        pointsReward: 50,
+        isVerified: true,
+      };
+      onBroadcastExhibition(exhibitionEvent);
+    }
 
     setTimeout(() => {
       onRegisterSuccess(newArtisan);
@@ -261,7 +337,7 @@ export const ArtisanRegisterView: React.FC<ArtisanRegisterViewProps> = ({
       </div>
 
       {registeredArtisan ? (
-        /* Registration Confirmation Card (Rural friendly high contrast) */
+        /* Registration Confirmation Card */
         <div className="bg-white rounded-3xl p-6 sm:p-10 card-shadow border-2 border-[#186a22] text-center animate-in zoom-in-95">
           <div className="w-20 h-20 bg-[#ebfbee] rounded-full flex items-center justify-center mx-auto mb-4 border border-[#92fa83]">
             <CheckCircle2 className="w-12 h-12 text-[#006e0c] fill-[#8ff780]" />
@@ -274,9 +350,21 @@ export const ArtisanRegisterView: React.FC<ArtisanRegisterViewProps> = ({
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#231914] mb-2">
             {t.successTitle}
           </h2>
-          <p className="text-sm sm:text-base text-[#564338] max-w-lg mx-auto mb-8 leading-relaxed">
+          <p className="text-sm sm:text-base text-[#564338] max-w-lg mx-auto mb-6 leading-relaxed">
             {t.successMsg}
           </p>
+
+          {/* Exhibition Broadcast Confirmation if provided */}
+          {marketName && (
+            <div className="p-3.5 bg-[#ffe4e6] text-[#e11d48] rounded-2xl border border-[#fecdd3] max-w-md mx-auto mb-6 text-xs font-bold flex items-center justify-center gap-2">
+              <Radio className="w-4 h-4 animate-pulse" />
+              <span>
+                {language === 'HI'
+                  ? `आपकी प्रदर्शनी "${marketName}" लाइव इवेंट रडार पर प्रसारित हो गई है!`
+                  : `Your exhibition stall at "${marketName}" has been broadcasted to the Local Event Radar!`}
+              </span>
+            </div>
+          )}
 
           {/* Generated Creator Preview Card */}
           <div className="max-w-md mx-auto bg-[#fff8f6] p-5 rounded-2xl border border-[#ddc1b3] mb-8 text-left flex items-center gap-4">
@@ -586,6 +674,90 @@ export const ArtisanRegisterView: React.FC<ArtisanRegisterViewProps> = ({
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* ================= 🌟 STEP 3: UPCOMING EXHIBITIONS (OPTIONAL SECTION) ================= */}
+            <div className="p-5 sm:p-6 bg-gradient-to-br from-[#fff8f6] to-[#ffe4e6]/30 rounded-2xl border-2 border-[#ddc1b3] space-y-4">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <h2 className="font-serif text-lg font-bold text-[#231914] flex items-center gap-2">
+                  <Radio className="w-5 h-5 text-[#e11d48] animate-pulse" />
+                  <span>{t.step3}</span>
+                </h2>
+                <span className="px-3 py-0.5 rounded-full bg-[#ffe4e6] text-[#e11d48] text-[11px] font-bold border border-[#fecdd3]">
+                  {t.optionalBadge}
+                </span>
+              </div>
+
+              <p className="text-xs text-[#564338] leading-relaxed">
+                {t.step3Subtitle}
+              </p>
+
+              {/* Market/Fair Name Input */}
+              <div>
+                <label className="block text-xs sm:text-sm font-bold text-[#231914] mb-1.5">
+                  {t.marketNameLabel}
+                </label>
+                <input
+                  type="text"
+                  value={marketName}
+                  onChange={(e) => setMarketName(e.target.value)}
+                  placeholder={t.marketNamePlaceholder}
+                  className="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold border border-[#ddc1b3] focus:border-[#e11d48] outline-none text-[#231914]"
+                />
+              </div>
+
+              {/* Exhibition Dates / Timing */}
+              <div>
+                <label className="block text-xs sm:text-sm font-bold text-[#231914] mb-1.5">
+                  {t.datesLabel}
+                </label>
+                <input
+                  type="text"
+                  value={exhibitionDates}
+                  onChange={(e) => setExhibitionDates(e.target.value)}
+                  placeholder={t.datesPlaceholder}
+                  className="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold border border-[#ddc1b3] focus:border-[#e11d48] outline-none text-[#231914]"
+                />
+              </div>
+
+              {/* Pin Location Button & GPS Tag */}
+              <div className="pt-1">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <button
+                    type="button"
+                    id="artisan-pin-location-btn"
+                    onClick={handlePinLocation}
+                    className={`px-5 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm ${
+                      isLocationPinned
+                        ? 'bg-[#186a22] text-white hover:bg-[#13541b]'
+                        : 'bg-[#974400] text-white hover:bg-[#bb5808]'
+                    }`}
+                  >
+                    <LocateFixed className={`w-4 h-4 ${isLocationPinned ? '' : 'animate-pulse'}`} />
+                    <span>{isLocationPinned ? '✓ Re-Pin Stall Location' : t.pinLocationBtn}</span>
+                  </button>
+
+                  {isLocationPinned && (
+                    <div className="p-2.5 bg-[#ebfbee] text-[#006e0c] rounded-xl border border-[#92fa83] text-xs font-bold flex items-center gap-2 animate-in fade-in">
+                      <CheckCircle2 className="w-4 h-4 text-[#006e0c]" />
+                      <span>{t.locationPinnedMsg}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Broadcast Checkbox */}
+              {marketName && (
+                <label className="flex items-center gap-2.5 pt-2 cursor-pointer text-xs sm:text-sm text-[#231914] font-semibold">
+                  <input
+                    type="checkbox"
+                    checked={broadcastToRadar}
+                    onChange={(e) => setBroadcastToRadar(e.target.checked)}
+                    className="w-4 h-4 accent-[#e11d48] rounded cursor-pointer"
+                  />
+                  <span>{t.broadcastLabel}</span>
+                </label>
+              )}
             </div>
 
             {/* Submit Button */}

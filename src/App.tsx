@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ARTISANS } from './data/artisans';
-import { Artisan } from './types';
+import { INITIAL_EVENTS } from './data/events';
+import { Artisan, LocalEvent } from './types';
 import { Navbar } from './components/Navbar';
 import { DiscoverView } from './components/DiscoverView';
 import { ArtisanProfileView } from './components/ArtisanProfileView';
@@ -17,6 +18,7 @@ import { ContributorModal } from './components/ContributorModal';
 
 export function App() {
   const [artisansList, setArtisansList] = useState<Artisan[]>(ARTISANS);
+  const [eventsList, setEventsList] = useState<LocalEvent[]>(INITIAL_EVENTS);
   const [selectedArtisan, setSelectedArtisan] = useState<Artisan>(ARTISANS[0]);
   const [currentView, setCurrentView] = useState<
     'discover' | 'map' | 'creators' | 'about' | 'artisan-profile' | 'buyer-profile' | 'artisan-register'
@@ -44,6 +46,10 @@ export function App() {
     setSelectedArtisan(newArtisan);
   };
 
+  const handleAddEvent = (newEvent: LocalEvent) => {
+    setEventsList((prev) => [newEvent, ...prev]);
+  };
+
   return (
     <div className="min-h-screen bg-[#fff8f6] text-[#231914] flex flex-col font-sans selection:bg-[#ffdbc9] selection:text-[#763400]">
       {/* Top Navbar & Mobile Bottom Nav */}
@@ -61,6 +67,7 @@ export function App() {
         {currentView === 'discover' && (
           <DiscoverView
             artisans={artisansList}
+            events={eventsList}
             onSelectArtisan={handleSelectArtisan}
             onExploreMapClick={() => {
               const el = document.getElementById('heritage-heatmap-section');
@@ -73,6 +80,7 @@ export function App() {
             onPinCreatorClick={() => setIsContributorOpen(true)}
             onRegisterArtisanClick={() => setCurrentView('artisan-register')}
             onViewAllCreators={() => setCurrentView('creators')}
+            onReportEventClick={() => setCurrentView('buyer-profile')}
           />
         )}
 
@@ -88,7 +96,9 @@ export function App() {
         {currentView === 'map' && (
           <MapView
             artisans={artisansList}
+            events={eventsList}
             onSelectArtisan={handleSelectArtisan}
+            onReportEvent={() => setCurrentView('buyer-profile')}
           />
         )}
 
@@ -102,9 +112,11 @@ export function App() {
         {currentView === 'buyer-profile' && (
           <BuyerImpactProfileView
             artisans={artisansList}
+            events={eventsList}
             onSelectArtisan={handleSelectArtisan}
             onExploreMap={() => setCurrentView('map')}
             onPinCreator={() => setIsContributorOpen(true)}
+            onReportEventSuccess={handleAddEvent}
           />
         )}
 
@@ -113,6 +125,7 @@ export function App() {
             onRegisterSuccess={handleRegisterSuccess}
             onExploreMap={() => setCurrentView('map')}
             onViewCreators={() => setCurrentView('creators')}
+            onBroadcastExhibition={handleAddEvent}
           />
         )}
 
@@ -164,4 +177,3 @@ export function App() {
 }
 
 export default App;
-

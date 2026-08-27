@@ -1,5 +1,5 @@
 import React from 'react';
-import { Artisan } from '../types';
+import { Artisan, LocalEvent } from '../types';
 import { HeritageHeatmap } from './HeritageHeatmap';
 import {
   CheckCircle2,
@@ -12,28 +12,34 @@ import {
   Trees,
   Palette,
   Sprout,
+  Radio,
 } from 'lucide-react';
 
 interface DiscoverViewProps {
   artisans: Artisan[];
+  events?: LocalEvent[];
   onSelectArtisan: (artisan: Artisan) => void;
   onExploreMapClick: () => void;
   onPinCreatorClick: () => void;
   onRegisterArtisanClick: () => void;
   onViewAllCreators: () => void;
+  onReportEventClick?: () => void;
 }
 
 export const DiscoverView: React.FC<DiscoverViewProps> = ({
   artisans,
+  events,
   onSelectArtisan,
   onExploreMapClick,
   onPinCreatorClick,
   onRegisterArtisanClick,
   onViewAllCreators,
+  onReportEventClick,
 }) => {
   const [categoryFilter, setCategoryFilter] = React.useState<
     'all' | 'Heritage Arts' | 'Agriculture' | 'Indigenous Flora'
   >('all');
+
 
   return (
     <div className="min-h-screen pb-24 md:pb-16 animate-in fade-in duration-300">
@@ -190,9 +196,11 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
         {/* Heatmap Container */}
         <HeritageHeatmap
           artisans={artisans}
+          events={events}
           onSelectArtisan={onSelectArtisan}
           selectedCategoryFilter={categoryFilter}
           onFilterChange={setCategoryFilter}
+          onReportEventClick={onReportEventClick}
         />
       </section>
 

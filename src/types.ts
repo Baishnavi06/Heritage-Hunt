@@ -59,3 +59,26 @@ export interface EncyclopediaEntry {
   ecologicalHabitat?: string;
   traditionalUse?: string;
 }
+
+export interface LocalEvent {
+  id: string;
+  name: string;
+  category: 'Tribal Craft Mela' | 'Agrarian Haat' | 'Botanical Fair' | 'Heritage Festival';
+  district: string;
+  state: string;
+  venue: string;
+  dates: string;
+  time?: string;
+  description: string;
+  coordinates: { x: number; y: number; lat: number; lng: number };
+  featuredCrafts: string[];
+  organizer: string;
+  expectedArtisans?: number;
+  expectedVisitors?: string;
+  status: 'Happening Now' | 'This Weekend' | 'Upcoming' | 'Live Haat';
+  reportedBy?: string;
+  pointsReward?: number;
+  isVerified?: boolean;
+  bannerImage?: string;
+}
+
