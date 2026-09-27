@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Artisan, LocalEvent } from '../types';
 import { INITIAL_EVENTS } from '../data/events';
 import {
@@ -18,7 +18,13 @@ import {
   ExternalLink,
   Share2,
   Bookmark,
+  PlusCircle,
+  X,
+  Camera,
+  Navigation,
+  Check,
 } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 interface HeritageHeatmapProps {
   artisans: Artisan[];
@@ -30,6 +36,7 @@ interface HeritageHeatmapProps {
   onMapModeChange?: (mode: 'creators' | 'events') => void;
   onSelectEvent?: (event: LocalEvent) => void;
   onReportEventClick?: () => void;
+  onAddArtisan?: (artisan: Artisan) => void;
 }
 
 export const HeritageHeatmap: React.FC<HeritageHeatmapProps> = ({
@@ -42,15 +49,31 @@ export const HeritageHeatmap: React.FC<HeritageHeatmapProps> = ({
   onMapModeChange,
   onSelectEvent,
   onReportEventClick,
+  onAddArtisan,
 }) => {
   const [internalMode, setInternalMode] = useState<'creators' | 'events'>('creators');
   const mapMode = activeMapMode ?? internalMode;
 
-  const [activePinId, setActivePinId] = useState<string>('sita-devi');
+  const [activePinId, setActivePinId] = useState<string>(artisans[0]?.id || 'sita-devi');
   const [activeEventId, setActiveEventId] = useState<string>('sohrai-harvest-mela');
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [selectedEventCategory, setSelectedEventCategory] = useState<string>('all');
   const [calendarSaved, setCalendarSaved] = useState(false);
+
+  // 🌟 Feature 2: Interactive Heat Map Pinning State
+  const [isPinningActive, setIsPinningActive] = useState<boolean>(false);
+  const [draftPin, setDraftPin] = useState<{ x: number; y: number; lat: number; lng: number } | null>(null);
+  const [isPinModalOpen, setIsPinModalOpen] = useState<boolean>(false);
+
+  // Draft creator form state
+  const [draftName, setDraftName] = useState('');
+  const [draftCraft, setDraftCraft] = useState('');
+  const [draftCategory, setDraftCategory] = useState<'Heritage Arts' | 'Agriculture' | 'Indigenous Flora'>('Heritage Arts');
+  const [draftDistrict, setDraftDistrict] = useState('Hazaribagh');
+  const [draftNotes, setDraftNotes] = useState('');
+  const [draftPhoto, setDraftPhoto] = useState('');
+
+  const mapContainerRef = useRef<HTMLDivElement>(null);
 
   const handleMapModeChange = (mode: 'creators' | 'events') => {
     if (onMapModeChange) {
@@ -80,14 +103,144 @@ export const HeritageHeatmap: React.FC<HeritageHeatmapProps> = ({
     setTimeout(() => setCalendarSaved(false), 2500);
   };
 
+  // 🌟 FEATURE 2: Handle Map Click to Drop Pin
+  const handleMapCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!mapContainerRef.current) return;
+
+    // Get click bounding rect
+    const rect = mapContainerRef.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    // Calculate percentage coordinates (clamped between 5% and 95%)
+    const pctX = Math.min(Math.max((clickX / rect.width) * 100, 5), 95);
+    const pctY = Math.min(Math.max((clickY / rect.height) * 100, 5), 95);
+
+    // Convert to realistic geospatial latitude and longitude for Jharkhand
+    // Lat range: 22.0°N to 25.0°N (Top is higher lat), Lng range: 83.5°E to 87.8°E
+    const calculatedLat = Number((25.0 - (pctY / 100) * 2.8).toFixed(4));
+    const calculatedLng = Number((83.5 + (pctX / 100) * 4.2).toFixed(4));
+
+    // Guess district based on coordinate quadrant
+    let guessedDistrict = 'Hazaribagh';
+    if (pctY < 40 && pctX > 55) guessedDistrict = 'Dumka';
+    else if (pctY > 55 && pctX < 45) guessedDistrict = 'Gumla';
+    else if (pctY > 50 && pctX >= 45 && pctX <= 65) guessedDistrict = 'Khunti';
+    else if (pctY > 60 && pctX > 65) guessedDistrict = 'East Singhbhum';
+    else if (pctY >= 35 && pctY <= 55 && pctX >= 40 && pctX <= 60) guessedDistrict = 'Ranchi';
+
+    setDraftDistrict(guessedDistrict);
+    setDraftPin({
+      x: Number(pctX.toFixed(1)),
+      y: Number(pctY.toFixed(1)),
+      lat: calculatedLat,
+      lng: calculatedLng,
+    });
+    setIsPinModalOpen(true);
+  };
+
+  const handleSaveDiscoveredPin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!draftPin) return;
+
+    const defaultImg =
+      draftCategory === 'Heritage Arts'
+        ? 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=800&q=80'
+        : draftCategory === 'Agriculture'
+        ? 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80'
+        : 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=800&q=80';
+
+    const newArtisan: Artisan = {
+      id: `pinned-${Date.now()}`,
+      name: draftName.trim() || 'Discovered Master Creator',
+      craftTitle: draftCraft.trim() || (draftCategory === 'Heritage Arts' ? 'Traditional Artisan' : 'Heirloom Conservator'),
+      shortBio: draftNotes.slice(0, 100) || `Discovered by field scout in ${draftDistrict}, practicing authentic ${draftCategory}.`,
+      fullBio: draftNotes || `Documented through on-site exploration in ${draftDistrict}, preserving authentic ancestral traditions.`,
+      category: draftCategory,
+      district: draftDistrict,
+      state: 'Jharkhand',
+      locationName: `${draftDistrict}, Jharkhand (Field Pinned)`,
+      coordinates: {
+        x: draftPin.x,
+        y: draftPin.y,
+        lat: draftPin.lat,
+        lng: draftPin.lng,
+      },
+      trustScore: 94,
+      trustRating: 4.8,
+      verifiedVisits: 1,
+      contributionsCount: 1,
+      avatarUrl: draftPhoto || defaultImg,
+      heroImageUrl: draftPhoto || defaultImg,
+      postcardImageUrl: draftPhoto || defaultImg,
+      artForm: draftCraft || draftCategory,
+      artDescription: draftNotes || `Authentic ${draftCategory} discovered at coordinates ${draftPin.lat}°N, ${draftPin.lng}°E.`,
+      tags: [draftDistrict, draftCategory, 'Scout Pinned', 'Field Geotagged'],
+      registrationType: 'contributor',
+      gallery: [
+        {
+          id: `gal-pin-${Date.now()}`,
+          url: draftPhoto || defaultImg,
+          caption: `${draftName} - ${draftCraft} (Field Geotag)`,
+          author: 'Field Scout',
+          span: 'col-span-2 row-span-2',
+        },
+      ],
+      reviews: [
+        {
+          id: `rev-pin-${Date.now()}`,
+          author: 'Explorer / Scout',
+          date: 'Just now',
+          rating: 5,
+          text: draftNotes || `Geotagged on interactive map during field exploration at ${draftPin.lat}° N, ${draftPin.lng}° E.`,
+          verifiedGps: `${draftDistrict}, Jharkhand (GPS: ${draftPin.lat}° N, ${draftPin.lng}° E)`,
+        },
+      ],
+      contactInfo: {
+        cooperative: `${draftDistrict} Cultural Guild`,
+        address: `${draftDistrict} District, Jharkhand`,
+      },
+    };
+
+    if (onAddArtisan) {
+      onAddArtisan(newArtisan);
+    }
+    onSelectArtisan(newArtisan);
+    setActivePinId(newArtisan.id);
+
+    setIsPinModalOpen(false);
+    setDraftPin(null);
+    setIsPinningActive(false);
+
+    // Reset draft form
+    setDraftName('');
+    setDraftCraft('');
+    setDraftNotes('');
+    setDraftPhoto('');
+
+    try {
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#974400', '#186a22', '#ffdbc9'],
+      });
+    } catch {}
+  };
+
   return (
-    <div className="relative w-full rounded-3xl overflow-hidden card-shadow bg-[#ffffff] border border-[#ddc1b3]/60 min-h-[600px] md:h-[650px] flex flex-col justify-between">
-      {/* Background Relief Map image with overlay */}
-      <div className="absolute inset-0 z-0">
+    <div className="relative w-full rounded-3xl overflow-hidden card-shadow bg-[#ffffff] border border-[#ddc1b3]/60 min-h-[620px] md:h-[660px] flex flex-col justify-between">
+      {/* Background Relief Map image with overlay & click listener */}
+      <div 
+        ref={mapContainerRef}
+        onClick={handleMapCanvasClick}
+        className={`absolute inset-0 z-0 cursor-crosshair group ${isPinningActive ? 'ring-4 ring-[#974400] ring-inset' : ''}`}
+        title="Click anywhere on the map to drop a pin and record a creator"
+      >
         <img
           src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYl-IS5xU96H7Zjk2i8hSYw1Ud5VE9TCQ_CU709DFlqCgpmsEP3-Gy4rngPrCk_uj7dyfu6g-578022zOGJlxtentgEu6TOGArZ4ApvpLcuIKMNa2iqotKqHZi_sEOG2I4SBksCYbXkYOesIXeE8BdEcNho82L7NvEANhUy7Bdzk7KzrCQWVGJGICKQYItcyaQv4HIki66tKTUMNOCFcyL6brDoo7GjAxLCWDwAnKh83NH7Bp4zCk"
           alt="Relief map of Jharkhand showing indigenous artisan and botanical clusters"
-          className="w-full h-full object-cover object-center transform transition-transform duration-500 scale-100"
+          className="w-full h-full object-cover object-center transform transition-transform duration-500 scale-100 pointer-events-none select-none"
           style={{ transform: `scale(${zoomLevel})` }}
         />
         <div
@@ -98,15 +251,16 @@ export const HeritageHeatmap: React.FC<HeritageHeatmapProps> = ({
       </div>
 
       {/* Top Map Header Overlay with Mode Switch & Filters */}
-      <div className="relative z-10 p-3 sm:p-5 flex flex-wrap justify-between items-center gap-3">
+      <div className="relative z-10 p-3 sm:p-5 flex flex-wrap justify-between items-center gap-3 pointer-events-auto">
         {/* Reset / Recenter Button */}
         <div className="flex items-center gap-2">
           <button
             id="map-reset-btn"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               setZoomLevel(1);
               if (mapMode === 'creators') {
-                setActivePinId('sita-devi');
+                setActivePinId(artisans[0]?.id || 'sita-devi');
               } else {
                 setActiveEventId('sohrai-harvest-mela');
               }
@@ -129,7 +283,10 @@ export const HeritageHeatmap: React.FC<HeritageHeatmapProps> = ({
         </div>
 
         {/* 🌟 Central Sleek Pill Toggle Switch: "Discover Creators" vs "Event Radar" */}
-        <div className="mx-auto sm:mx-0 flex bg-white/95 backdrop-blur-md p-1.5 rounded-full card-shadow border border-[#ddc1b3]/70 shadow-md">
+        <div 
+          onClick={(e) => e.stopPropagation()} 
+          className="mx-auto sm:mx-0 flex bg-white/95 backdrop-blur-md p-1.5 rounded-full card-shadow border border-[#ddc1b3]/70 shadow-md"
+        >
           <button
             type="button"
             id="map-toggle-creators-tab"
@@ -163,8 +320,24 @@ export const HeritageHeatmap: React.FC<HeritageHeatmapProps> = ({
           </button>
         </div>
 
-        {/* Quick Filter Control based on Active Mode */}
-        <div className="flex items-center gap-2">
+        {/* Quick Filter & Pin Action Control */}
+        <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-2">
+          {mapMode === 'creators' && (
+            <button
+              id="map-drop-pin-toggle-btn"
+              onClick={() => setIsPinningActive(!isPinningActive)}
+              className={`px-3.5 py-2 rounded-full card-shadow transition-all active:scale-95 flex items-center space-x-1.5 cursor-pointer text-xs font-bold border ${
+                isPinningActive
+                  ? 'bg-[#974400] text-white border-[#7b3700] ring-2 ring-[#ffdbc9]'
+                  : 'bg-white/95 backdrop-blur-md text-[#974400] border-[#ddc1b3]/60 hover:bg-[#feeae0]'
+              }`}
+              title="Click to drop a pin anywhere on the map"
+            >
+              <MapPin className={`w-3.5 h-3.5 ${isPinningActive ? 'animate-bounce' : ''}`} />
+              <span>{isPinningActive ? 'Tap on Map to Drop Pin' : 'Drop Pin on Map'}</span>
+            </button>
+          )}
+
           {mapMode === 'creators' ? (
             <button
               id="map-filter-creators-toggle-btn"
@@ -214,6 +387,14 @@ export const HeritageHeatmap: React.FC<HeritageHeatmapProps> = ({
         </div>
       </div>
 
+      {/* Floating Explorer Instruction Badge */}
+      <div className="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+        <div className="bg-[#231914]/80 backdrop-blur-md text-white text-[11px] font-medium px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2 border border-white/20 animate-in fade-in">
+          <Sparkles className="w-3.5 h-3.5 text-[#ffdbc9]" />
+          <span>Click anywhere on the map to drop a pin &amp; record a creator</span>
+        </div>
+      </div>
+
       {/* Interactive Map Pins Area */}
       <div className="relative z-10 flex-grow w-full h-full my-auto pointer-events-none">
         {/* MODE 1: DISCOVER CREATORS PINS */}
@@ -235,7 +416,10 @@ export const HeritageHeatmap: React.FC<HeritageHeatmapProps> = ({
                 {/* Animated Creator Pin */}
                 <button
                   id={`map-pin-${artisan.id}`}
-                  onClick={() => setActivePinId(artisan.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActivePinId(artisan.id);
+                  }}
                   className={`group relative flex items-center justify-center p-2 rounded-full transition-transform active:scale-95 cursor-pointer shadow-md ${
                     isSelected
                       ? isArts
@@ -282,8 +466,29 @@ export const HeritageHeatmap: React.FC<HeritageHeatmapProps> = ({
             );
           })}
 
+        {/* 🌟 FEATURE 2: Pulsing Draft Discovery Pin Marker */}
+        {draftPin && (
+          <div
+            className="absolute pointer-events-auto transition-all duration-300 transform -translate-x-1/2 -translate-y-1/2 z-40"
+            style={{
+              left: `${draftPin.x}%`,
+              top: `${draftPin.y}%`,
+            }}
+          >
+            <div className="relative flex items-center justify-center p-3 rounded-full bg-[#974400] text-white shadow-2xl ring-4 ring-[#ffdbc9] scale-125 animate-bounce">
+              <MapPin className="w-5 h-5 fill-white" />
+              <span className="absolute -inset-2 rounded-full animate-ping bg-[#974400]/60 pointer-events-none" />
+            </div>
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap">
+              <span className="px-2.5 py-1 rounded-full bg-[#974400] text-white text-[10px] font-bold shadow-md border border-white">
+                New Discovery Pin ({draftPin.lat}°N, {draftPin.lng}°E)
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Selected Artisan Floating Tooltip (Creators Mode) */}
-        {mapMode === 'creators' && activeArtisan && (
+        {mapMode === 'creators' && activeArtisan && !draftPin && (
           <div
             className="absolute pointer-events-auto transition-all duration-300 z-30"
             style={{
@@ -291,7 +496,10 @@ export const HeritageHeatmap: React.FC<HeritageHeatmapProps> = ({
               top: `clamp(12%, ${activeArtisan.coordinates.y - 18}%, 50%)`,
             }}
           >
-            <div className="bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-[#ddc1b3]/70 max-w-[280px] sm:max-w-xs animate-in fade-in zoom-in-95 duration-200">
+            <div 
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-[#ddc1b3]/70 max-w-[280px] sm:max-w-xs animate-in fade-in zoom-in-95 duration-200"
+            >
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="flex items-center space-x-2.5">
                   <img
@@ -324,7 +532,10 @@ export const HeritageHeatmap: React.FC<HeritageHeatmapProps> = ({
               {/* View Profile Action */}
               <button
                 id={`view-artisan-profile-${activeArtisan.id}`}
-                onClick={() => onSelectArtisan(activeArtisan)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelectArtisan(activeArtisan);
+                }}
                 className="w-full bg-[#974400] text-white py-2 px-3 rounded-full text-xs font-semibold hover:bg-[#bb5808] transition-colors flex items-center justify-center gap-1 shadow-xs cursor-pointer"
               >
                 <span>View Creator Profile</span>
@@ -334,7 +545,7 @@ export const HeritageHeatmap: React.FC<HeritageHeatmapProps> = ({
           </div>
         )}
 
-        {/* MODE 2: EVENT RADAR PINS WITH GLOWING PULSE & RADIO/CALENDAR ICONS */}
+        {/* MODE 2: EVENT RADAR PINS */}
         {mapMode === 'events' &&
           filteredEvents.map((event) => {
             const isSelected = event.id === activeEventId;
@@ -352,7 +563,8 @@ export const HeritageHeatmap: React.FC<HeritageHeatmapProps> = ({
                 {/* Glowing Animated Event Pin */}
                 <button
                   id={`event-radar-pin-${event.id}`}
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setActiveEventId(event.id);
                     if (onSelectEvent) onSelectEvent(event);
                   }}
@@ -400,152 +612,218 @@ export const HeritageHeatmap: React.FC<HeritageHeatmapProps> = ({
               top: `clamp(10%, ${activeEvent.coordinates.y - 20}%, 45%)`,
             }}
           >
-            <div className="bg-white/95 backdrop-blur-md p-4 sm:p-5 rounded-2xl shadow-2xl border-2 border-[#e11d48]/30 max-w-[310px] sm:max-w-sm animate-in fade-in zoom-in-95 duration-200">
-              {/* Top Banner Status & Category */}
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[#ffe4e6] text-[#e11d48] border border-[#fecdd3]">
+            <div 
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-[#ddc1b3]/70 max-w-[280px] sm:max-w-xs animate-in fade-in zoom-in-95 duration-200"
+            >
+              <div className="flex items-start justify-between gap-2 mb-1.5">
+                <span className="text-[10px] font-bold uppercase text-[#e11d48] tracking-wider">
                   {activeEvent.category}
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#f7fff1] text-[#186a22] border border-[#a3f69c] flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#186a22] animate-ping" />
+                <span className="text-[10px] font-bold bg-[#ebfbee] text-[#006e0c] px-2 py-0.5 rounded-full border border-[#92fa83]">
                   {activeEvent.status}
                 </span>
               </div>
 
-              {/* Event Title */}
-              <h4 className="font-serif font-bold text-base sm:text-lg text-[#231914] mb-1 leading-snug">
+              <h4 className="font-serif font-bold text-sm text-[#231914] leading-snug mb-1">
                 {activeEvent.name}
               </h4>
+              <p className="text-xs text-[#564338] mb-2">{activeEvent.venue}</p>
 
-              {/* Dates & Venue Info */}
-              <div className="space-y-1 text-xs text-[#564338] mb-3">
-                <div className="flex items-center gap-1.5 font-semibold text-[#974400]">
-                  <Calendar className="w-3.5 h-3.5 shrink-0" />
+              <div className="text-[11px] text-[#564338] space-y-1 mb-3 bg-[#fff8f6] p-2 rounded-lg border border-[#ddc1b3]/40">
+                <div className="flex items-center gap-1.5 font-medium">
+                  <Calendar className="w-3.5 h-3.5 text-[#e11d48]" />
                   <span>{activeEvent.dates}</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-[11px] text-[#8a7266]">
-                  <MapPin className="w-3.5 h-3.5 text-[#e11d48] shrink-0" />
-                  <span className="truncate">{activeEvent.venue}</span>
+                <div className="flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5 text-[#974400]" />
+                  <span>{activeEvent.organizer}</span>
                 </div>
               </div>
 
-              {/* Featured Crafts */}
-              <div className="flex flex-wrap gap-1 mb-3">
-                {activeEvent.featuredCrafts.map((craft, i) => (
-                  <span
-                    key={i}
-                    className="px-2 py-0.5 rounded-md bg-[#fff1eb] text-[#974400] text-[10px] font-semibold"
-                  >
-                    {craft}
-                  </span>
-                ))}
-              </div>
-
-              {/* Event Highlights & Rewards Note */}
-              <div className="p-2 bg-[#fff8f6] rounded-xl border border-[#ddc1b3]/50 text-[11px] text-[#564338] mb-3 flex items-center justify-between">
-                <span>
-                  👥 <strong>{activeEvent.expectedArtisans}+</strong> Artisans on site
-                </span>
-                <span className="text-[#006e0c] font-bold flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-[#ff9900]" />
-                  +50 Scout Pts
-                </span>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  id={`rsvp-event-btn-${activeEvent.id}`}
-                  onClick={handleCalendarReminder}
-                  className="flex-1 bg-[#e11d48] hover:bg-[#be123c] text-white py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer shadow-sm active:scale-95"
-                >
-                  <Calendar className="w-3.5 h-3.5" />
-                  <span>{calendarSaved ? 'Saved to Radar ✓' : 'Save / Add Calendar'}</span>
-                </button>
-
-                {onReportEventClick && (
-                  <button
-                    type="button"
-                    onClick={onReportEventClick}
-                    className="p-2 bg-[#fff1eb] text-[#974400] hover:bg-[#feeae0] rounded-xl border border-[#ddc1b3] transition-colors cursor-pointer"
-                    title="Report / Update Event"
-                  >
-                    <Share2 className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
+              <button
+                id="save-calendar-reminder-btn"
+                onClick={handleCalendarReminder}
+                className="w-full bg-gradient-to-r from-[#e11d48] to-[#974400] text-white py-2 px-3 rounded-full text-xs font-semibold hover:opacity-95 transition-opacity flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+              >
+                <Bookmark className="w-3.5 h-3.5" />
+                <span>{calendarSaved ? 'Saved to Radar Calendar ✓' : 'Add to Field Radar'}</span>
+              </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Map Legend Overlay at bottom */}
-      <div className="relative z-10 p-3 sm:p-5 flex flex-wrap justify-between items-end gap-3 pointer-events-none">
-        {/* Dynamic Legend */}
-        <div className="pointer-events-auto bg-white/95 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl card-shadow border border-[#ddc1b3]/40 space-y-1.5 text-xs font-semibold text-[#231914]">
-          {mapMode === 'creators' ? (
-            <>
-              <div className="flex items-center space-x-2">
-                <span className="w-3 h-3 rounded-full bg-[#974400] flex items-center justify-center text-white text-[8px]">
-                  ✓
-                </span>
-                <span>🟠 Heritage Arts Masters</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="w-3 h-3 rounded-full bg-[#186a22] flex items-center justify-center text-white text-[8px]">
-                  ✓
-                </span>
-                <span>🟢 Heirloom Agrarian Preserves</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="w-3 h-3 rounded-full bg-[#006e0c] flex items-center justify-center text-white text-[8px]">
-                  ✓
-                </span>
-                <span>🌿 Rare Indigenous Flora Stewards</span>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="flex items-center space-x-2 text-[#e11d48]">
-                <Radio className="w-3.5 h-3.5 animate-pulse" />
-                <span>🔴 Live Tribal Melas &amp; Exhibitions</span>
-              </div>
-              <div className="flex items-center space-x-2 text-[#186a22]">
-                <Trees className="w-3.5 h-3.5" />
-                <span>🌾 Farmers Haats &amp; Seed Exchanges</span>
-              </div>
-              <div className="flex items-center space-x-2 text-[#974400]">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>✨ Community Verified Event Radar</span>
-              </div>
-            </>
-          )}
+      {/* Bottom Map Controls Bar */}
+      <div 
+        onClick={(e) => e.stopPropagation()} 
+        className="relative z-10 p-3 sm:p-4 flex flex-wrap justify-between items-center gap-2 text-xs text-[#564338] bg-white/90 backdrop-blur-md border-t border-[#ddc1b3]/40"
+      >
+        <div className="flex items-center gap-4">
+          <span className="font-semibold text-[#231914] flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#006e0c] animate-pulse" />
+            <span>Live Geospatial Registry</span>
+          </span>
+          <span className="hidden sm:inline text-xs text-[#8a7266]">
+            Showing {filteredArtisans.length} verified origins
+          </span>
         </div>
 
-        {/* Zoom In / Out Controls */}
-        <div className="pointer-events-auto flex items-center space-x-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-full card-shadow border border-[#ddc1b3]/40">
-          <button
-            id="map-zoom-out-btn"
-            onClick={() => setZoomLevel((prev) => Math.max(1, prev - 0.2))}
-            className="w-7 h-7 rounded-full hover:bg-[#f2dfd5] text-[#231914] font-bold text-sm flex items-center justify-center cursor-pointer transition-colors"
-            title="Zoom Out"
-          >
-            -
-          </button>
-          <span className="text-[11px] font-semibold text-[#564338] px-1">
-            {Math.round(zoomLevel * 100)}%
-          </span>
-          <button
-            id="map-zoom-in-btn"
-            onClick={() => setZoomLevel((prev) => Math.min(1.8, prev + 0.2))}
-            className="w-7 h-7 rounded-full hover:bg-[#f2dfd5] text-[#231914] font-bold text-sm flex items-center justify-center cursor-pointer transition-colors"
-            title="Zoom In"
-          >
-            +
-          </button>
+        <div className="flex items-center gap-2">
+          {onReportEventClick && (
+            <button
+              id="map-report-event-cta-btn"
+              onClick={onReportEventClick}
+              className="text-[#e11d48] font-bold hover:underline flex items-center gap-1 text-xs cursor-pointer"
+            >
+              <Radio className="w-3.5 h-3.5" />
+              <span>Broadcast Haat</span>
+            </button>
+          )}
         </div>
       </div>
+
+      {/* 🌟 FEATURE 2: MODAL POPUP FOR ENTERING DISCOVERED CREATOR DETAILS */}
+      {isPinModalOpen && draftPin && (
+        <div 
+          onClick={(e) => e.stopPropagation()}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#231914]/70 backdrop-blur-xs animate-in fade-in duration-200"
+        >
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-[#ddc1b3] p-6 sm:p-8 animate-in zoom-in-95">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#974400] bg-[#feeae0] px-2.5 py-0.5 rounded-full">
+                  Geotag Creator Discovery
+                </span>
+                <h3 className="font-serif text-2xl font-bold text-[#231914] mt-1.5">
+                  Record Discovered Artisan
+                </h3>
+              </div>
+              <button
+                type="button"
+                id="close-pin-modal-btn"
+                onClick={() => {
+                  setIsPinModalOpen(false);
+                  setDraftPin(null);
+                }}
+                className="p-2 rounded-full hover:bg-[#fff1eb] text-[#564338] transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveDiscoveredPin} className="space-y-4">
+              {/* Captured GPS Coordinates Badge */}
+              <div className="p-3 bg-[#ebfbee] rounded-xl border border-[#92fa83] flex items-center justify-between text-xs font-bold text-[#006e0c]">
+                <div className="flex items-center gap-2">
+                  <Navigation className="w-4 h-4 text-[#006e0c]" />
+                  <span>Captured Coordinates:</span>
+                </div>
+                <span>{draftPin.lat}° N, {draftPin.lng}° E</span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#231914] mb-1">
+                  Artisan / Workshop / Farm Name <span className="text-[#974400]">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={draftName}
+                  onChange={(e) => setDraftName(e.target.value)}
+                  placeholder="e.g. Birsa Murmu Terracotta Studio"
+                  className="w-full px-4 py-2.5 bg-[#fff8f6] rounded-xl text-sm font-semibold border border-[#ddc1b3] focus:border-[#974400] outline-none text-[#231914]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-[#231914] mb-1">
+                    Category <span className="text-[#974400]">*</span>
+                  </label>
+                  <select
+                    value={draftCategory}
+                    onChange={(e) => setDraftCategory(e.target.value as any)}
+                    className="w-full px-3 py-2.5 bg-[#fff8f6] rounded-xl text-xs sm:text-sm font-semibold border border-[#ddc1b3] focus:border-[#974400] outline-none text-[#231914]"
+                  >
+                    <option value="Heritage Arts">Heritage Arts (हस्तशिल्प)</option>
+                    <option value="Agriculture">Agriculture (पारंपरिक कृषि)</option>
+                    <option value="Indigenous Flora">Indigenous Flora (देशज वनस्पति)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#231914] mb-1">
+                    District <span className="text-[#974400]">*</span>
+                  </label>
+                  <select
+                    value={draftDistrict}
+                    onChange={(e) => setDraftDistrict(e.target.value)}
+                    className="w-full px-3 py-2.5 bg-[#fff8f6] rounded-xl text-xs sm:text-sm font-semibold border border-[#ddc1b3] focus:border-[#974400] outline-none text-[#231914]"
+                  >
+                    <option value="Hazaribagh">Hazaribagh</option>
+                    <option value="Ranchi">Ranchi</option>
+                    <option value="Khunti">Khunti</option>
+                    <option value="Dumka">Dumka</option>
+                    <option value="East Singhbhum">East Singhbhum</option>
+                    <option value="Gumla">Gumla</option>
+                    <option value="Simdega">Simdega</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#231914] mb-1">
+                  Craft / Produce Title <span className="text-[#974400]">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={draftCraft}
+                  onChange={(e) => setDraftCraft(e.target.value)}
+                  placeholder="e.g. Master Sohrai Painter or Wild Kalmegh Forager"
+                  className="w-full px-4 py-2.5 bg-[#fff8f6] rounded-xl text-sm font-semibold border border-[#ddc1b3] focus:border-[#974400] outline-none text-[#231914]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#564338] mb-1">
+                  Field Notes &amp; Observations
+                </label>
+                <textarea
+                  rows={2}
+                  value={draftNotes}
+                  onChange={(e) => setDraftNotes(e.target.value)}
+                  placeholder="Found during village scout trek. Uses local earth pigments and traditional datun brushes..."
+                  className="w-full p-3 bg-[#fff8f6] rounded-xl text-xs border border-[#ddc1b3] focus:border-[#974400] outline-none text-[#231914]"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  id="cancel-pin-modal-btn"
+                  onClick={() => {
+                    setIsPinModalOpen(false);
+                    setDraftPin(null);
+                  }}
+                  className="px-5 py-2.5 rounded-xl border border-[#ddc1b3] text-[#564338] text-xs font-bold hover:bg-[#fff1eb] transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  id="submit-discovered-pin-btn"
+                  className="bg-[#974400] text-white px-6 py-2.5 rounded-xl text-xs font-bold hover:bg-[#bb5808] transition-all shadow-md active:scale-95 cursor-pointer flex items-center gap-1.5"
+                >
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span>Save Pin to Registry</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

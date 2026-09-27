@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Artisan, LocalEvent } from '../types';
 import { INITIAL_EVENTS } from '../data/events';
 import { HeritageHeatmap } from './HeritageHeatmap';
+import { RootsKnowledgeHubSection } from './RootsKnowledgeHubSection';
 import {
   Search,
   SlidersHorizontal,
@@ -25,6 +26,7 @@ interface MapViewProps {
   onSelectArtisan: (artisan: Artisan) => void;
   onSelectEvent?: (event: LocalEvent) => void;
   onReportEvent?: () => void;
+  onAddArtisan?: (artisan: Artisan) => void;
 }
 
 export const MapView: React.FC<MapViewProps> = ({
@@ -33,6 +35,7 @@ export const MapView: React.FC<MapViewProps> = ({
   onSelectArtisan,
   onSelectEvent,
   onReportEvent,
+  onAddArtisan,
 }) => {
   const [mapMode, setMapMode] = useState<'creators' | 'events'>('creators');
   const [searchQuery, setSearchQuery] = useState('');
@@ -88,7 +91,7 @@ export const MapView: React.FC<MapViewProps> = ({
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12 animate-in fade-in duration-300 pb-24 md:pb-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12 animate-in fade-in duration-300 pb-28 md:pb-16">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
         <div className="max-w-3xl">
@@ -102,7 +105,7 @@ export const MapView: React.FC<MapViewProps> = ({
           </h1>
           <p className="text-sm text-[#564338]">
             {mapMode === 'creators'
-              ? 'Navigate across verified geographical indication (GI) clusters, indigenous agrarian preserves, and rare botanical sanctuaries in Jharkhand.'
+              ? 'Navigate across verified geographical indication (GI) clusters, indigenous agrarian preserves, and rare botanical sanctuaries in Jharkhand. Click anywhere on the map to drop a pin.'
               : 'Live radar of community fairs, tribal craft melas, weekly agrarian haats, and artisan exhibitions taking place across Jharkhand.'}
           </p>
         </div>
@@ -131,128 +134,37 @@ export const MapView: React.FC<MapViewProps> = ({
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={
               mapMode === 'creators'
-                ? 'Search by artisan, plant, craft, or district...'
-                : 'Search fairs, melas, haats, venues, or crafts...'
+                ? 'Search by artisan, craft, district...'
+                : 'Search fairs, haats, exhibitions...'
             }
-            className="w-full pl-10 pr-4 py-2.5 bg-[#fff8f6] rounded-xl text-xs sm:text-sm border border-[#ddc1b3]/50 focus:border-[#974400] outline-none text-[#231914]"
+            className="w-full pl-10 pr-4 py-2.5 bg-[#fff8f6] border border-[#ddc1b3] rounded-xl text-xs sm:text-sm focus:border-[#974400] outline-none text-[#231914]"
           />
         </div>
 
-        {/* Filter Pills based on active mode */}
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-          {mapMode === 'creators' ? (
-            /* Creator Category Toggle */
-            <div className="flex flex-wrap bg-[#fff1eb] p-1 rounded-xl border border-[#ddc1b3]/40">
-              <button
-                onClick={() => setSelectedCategory('all')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  selectedCategory === 'all'
-                    ? 'bg-[#974400] text-white shadow-2xs'
-                    : 'text-[#564338] hover:text-[#231914]'
-                }`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setSelectedCategory('Heritage Arts')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 ${
-                  selectedCategory === 'Heritage Arts'
-                    ? 'bg-[#974400] text-white shadow-2xs'
-                    : 'text-[#564338] hover:text-[#231914]'
-                }`}
-              >
-                <Palette className="w-3 h-3" />
-                <span>Arts</span>
-              </button>
-              <button
-                onClick={() => setSelectedCategory('Agriculture')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 ${
-                  selectedCategory === 'Agriculture'
-                    ? 'bg-[#186a22] text-white shadow-2xs'
-                    : 'text-[#564338] hover:text-[#231914]'
-                }`}
-              >
-                <Trees className="w-3 h-3" />
-                <span>Agro</span>
-              </button>
-              <button
-                onClick={() => setSelectedCategory('Indigenous Flora')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 ${
-                  selectedCategory === 'Indigenous Flora'
-                    ? 'bg-[#006e0c] text-white shadow-2xs'
-                    : 'text-[#564338] hover:text-[#231914]'
-                }`}
-              >
-                <Sprout className="w-3 h-3" />
-                <span>Flora</span>
-              </button>
-            </div>
-          ) : (
-            /* Event Category Toggle */
-            <div className="flex flex-wrap bg-[#fff1eb] p-1 rounded-xl border border-[#ddc1b3]/40">
-              <button
-                onClick={() => setSelectedEventCategory('all')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  selectedEventCategory === 'all'
-                    ? 'bg-[#e11d48] text-white shadow-2xs'
-                    : 'text-[#564338] hover:text-[#231914]'
-                }`}
-              >
-                All Events
-              </button>
-              <button
-                onClick={() => setSelectedEventCategory('Tribal Craft Mela')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  selectedEventCategory === 'Tribal Craft Mela'
-                    ? 'bg-[#e11d48] text-white shadow-2xs'
-                    : 'text-[#564338] hover:text-[#231914]'
-                }`}
-              >
-                Craft Melas
-              </button>
-              <button
-                onClick={() => setSelectedEventCategory('Agrarian Haat')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  selectedEventCategory === 'Agrarian Haat'
-                    ? 'bg-[#186a22] text-white shadow-2xs'
-                    : 'text-[#564338] hover:text-[#231914]'
-                }`}
-              >
-                Agrarian Haats
-              </button>
-              <button
-                onClick={() => setSelectedEventCategory('Botanical Fair')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  selectedEventCategory === 'Botanical Fair'
-                    ? 'bg-[#006e0c] text-white shadow-2xs'
-                    : 'text-[#564338] hover:text-[#231914]'
-                }`}
-              >
-                Botanical
-              </button>
-            </div>
-          )}
-
-          {/* District Dropdown */}
-          <select
-            value={selectedDistrict}
-            onChange={(e) => setSelectedDistrict(e.target.value)}
-            className="px-3 py-2 bg-[#fff1eb] text-xs font-semibold text-[#231914] rounded-xl border border-[#ddc1b3]/40 outline-none cursor-pointer"
-          >
-            {districts.map((d) => (
-              <option key={d} value={d}>
-                {d === 'all' ? 'All Districts' : d}
-              </option>
-            ))}
-          </select>
+        {/* District Filter Dropdown */}
+        <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-start md:justify-end">
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-bold text-[#564338]">District:</label>
+            <select
+              value={selectedDistrict}
+              onChange={(e) => setSelectedDistrict(e.target.value)}
+              className="bg-[#fff8f6] border border-[#ddc1b3] text-xs font-semibold rounded-xl px-3 py-2 text-[#231914] focus:border-[#974400] outline-none cursor-pointer"
+            >
+              {districts.map((dist) => (
+                <option key={dist} value={dist}>
+                  {dist === 'all' ? 'All Districts' : dist}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
-      {/* Main Map View */}
+      {/* Interactive Heat Map Canvas */}
       <div className="mb-12">
         <HeritageHeatmap
-          artisans={filteredArtisans}
-          events={filteredEvents}
+          artisans={artisans}
+          events={events}
           onSelectArtisan={onSelectArtisan}
           selectedCategoryFilter={selectedCategory}
           onFilterChange={setSelectedCategory}
@@ -260,47 +172,54 @@ export const MapView: React.FC<MapViewProps> = ({
           onMapModeChange={setMapMode}
           onSelectEvent={onSelectEvent}
           onReportEventClick={onReportEvent}
+          onAddArtisan={onAddArtisan}
         />
       </div>
 
-      {/* Filtered Results List: Dynamic based on Active Mode */}
+      {/* 🌟 FEATURE 4: Roots Knowledge Hub Section Embedded in Map View */}
+      <div className="mb-12">
+        <RootsKnowledgeHubSection
+          onExploreDistrictCreators={(d) => setSelectedDistrict(d)}
+        />
+      </div>
+
+      {/* Filtered List View Section */}
       {mapMode === 'creators' ? (
         /* Creators Directory */
         <div>
-          <h3 className="font-serif text-2xl font-bold text-[#231914] mb-4">
-            Verified Artisans, Agrarian &amp; Botanical Stewards ({filteredArtisans.length})
-          </h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-serif text-2xl font-bold text-[#231914]">
+              Discovered Creators ({filteredArtisans.length})
+            </h3>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {filteredArtisans.map((artisan) => (
               <div
                 key={artisan.id}
                 onClick={() => onSelectArtisan(artisan)}
-                className="bg-white p-4 rounded-xl card-shadow border border-[#ddc1b3]/40 flex items-center justify-between cursor-pointer hover:border-[#974400]/40 transition-all"
+                className="bg-white p-4 rounded-2xl card-shadow border border-[#ddc1b3]/40 flex items-center justify-between hover:border-[#974400]/40 transition-all cursor-pointer group"
               >
-                <div className="flex items-center gap-3.5">
+                <div className="flex items-center gap-3">
                   <img
                     src={artisan.avatarUrl}
                     alt={artisan.name}
-                    className="w-14 h-14 rounded-full object-cover border border-[#ddc1b3]"
+                    className="w-12 h-12 rounded-xl object-cover border border-[#ddc1b3]"
                   />
                   <div>
-                    <div className="flex items-center gap-1.5">
-                      <h4 className="font-serif font-bold text-base text-[#231914]">
-                        {artisan.name}
-                      </h4>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-[#006e0c] fill-[#8ff780]" />
-                    </div>
+                    <h4 className="font-serif font-bold text-sm text-[#231914] group-hover:text-[#974400] transition-colors">
+                      {artisan.name}
+                    </h4>
                     <p className="text-xs text-[#564338]">{artisan.craftTitle}</p>
-                    <p className="text-[11px] text-[#8a7266] flex items-center gap-1 mt-0.5">
+                    <span className="text-[10px] text-[#8a7266] flex items-center gap-1 mt-0.5">
                       <MapPin className="w-3 h-3 text-[#974400]" />
-                      <span>{artisan.locationName}</span>
-                    </p>
+                      <span>{artisan.district}</span>
+                    </span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="text-right hidden sm:block">
+                  <div className="text-right flex flex-col items-end">
                     <span className="text-xs font-bold text-[#006e0c] block">
                       ★ {artisan.trustRating}
                     </span>
@@ -308,7 +227,7 @@ export const MapView: React.FC<MapViewProps> = ({
                       {artisan.trustScore}% trust
                     </span>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-[#feeae0] text-[#974400] flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-[#feeae0] text-[#974400] flex items-center justify-center shrink-0">
                     <ChevronRight className="w-4 h-4" />
                   </div>
                 </div>

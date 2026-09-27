@@ -208,7 +208,7 @@ export const BuyerImpactProfileView: React.FC<BuyerImpactProfileViewProps> = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12 animate-in fade-in duration-300 pb-24 md:pb-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12 animate-in fade-in duration-300 pb-28 md:pb-16">
       {/* Header Banner: Gamified Scout Profile */}
       <div className="bg-gradient-to-r from-[#231914] via-[#3a281e] to-[#231914] text-white rounded-3xl p-6 sm:p-10 card-shadow border border-[#ffdbc9]/20 mb-10 relative overflow-hidden">
         {/* Background ambient lighting */}

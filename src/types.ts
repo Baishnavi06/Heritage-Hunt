@@ -1,3 +1,12 @@
+export type ViewType =
+  | 'discover'
+  | 'map'
+  | 'creators'
+  | 'about'
+  | 'artisan-profile'
+  | 'buyer-profile'
+  | 'artisan-register';
+
 export interface Review {
   id: string;
   author: string;
@@ -43,6 +52,14 @@ export interface Artisan {
     cooperative?: string;
     address?: string;
   };
+  registrationType?: 'self' | 'contributor';
+  contributorInfo?: {
+    contributorName?: string;
+    organization?: string;
+    contact?: string;
+    relationship?: string;
+    scoutNotes?: string;
+  };
 }
 
 export interface EncyclopediaEntry {
@@ -58,6 +75,23 @@ export interface EncyclopediaEntry {
   botanicalClassification?: string;
   ecologicalHabitat?: string;
   traditionalUse?: string;
+}
+
+export interface DistrictKnowledge {
+  districtKey: string;
+  districtName: string;
+  state: string;
+  primaryArtForm: string;
+  heroImage: string;
+  heroCaption: string;
+  history: string;
+  culturalSignificance: string;
+  indigenousMaterials: string[];
+  subForms: {
+    name: string;
+    summary: string;
+    imageUrl?: string;
+  }[];
 }
 
 export interface LocalEvent {
@@ -81,4 +115,5 @@ export interface LocalEvent {
   isVerified?: boolean;
   bannerImage?: string;
 }
+
 

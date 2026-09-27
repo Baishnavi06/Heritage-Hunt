@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Artisan } from '../types';
+import { Artisan, Review } from '../types';
 import {
   CheckCircle2,
   MapPin,
@@ -9,6 +9,7 @@ import {
   Phone,
   Brush,
   ArrowRight,
+  ArrowLeft,
   Sparkles,
   Star,
   MessageSquare,
@@ -17,13 +18,21 @@ import {
   Trees,
   Sprout,
   Palette,
+  Send,
+  Camera,
+  Check,
+  LocateFixed,
+  X,
 } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 interface ArtisanProfileViewProps {
   artisan: Artisan;
   onOpenPostcardModal: () => void;
   onOpenContactModal: () => void;
   onOpenEncyclopediaModal: () => void;
+  onAddReview?: (artisanId: string, review: Review) => void;
+  onBack?: () => void;
 }
 
 export const ArtisanProfileView: React.FC<ArtisanProfileViewProps> = ({
@@ -31,15 +40,110 @@ export const ArtisanProfileView: React.FC<ArtisanProfileViewProps> = ({
   onOpenPostcardModal,
   onOpenContactModal,
   onOpenEncyclopediaModal,
+  onAddReview,
+  onBack,
 }) => {
-  const [showAllReviews, setShowAllReviews] = useState(false);
+  const [showAllReviews, setShowAllReviews] = useState(true);
   const [liked, setLiked] = useState(false);
+
+  // 🌟 Feature 3: Buyer Review System Form State
+  const [isReviewFormOpen, setIsReviewFormOpen] = useState(false);
+  const [rating, setRating] = useState<number>(5);
+  const [hoverRating, setHoverRating] = useState<number>(0);
+  const [reviewerName, setReviewerName] = useState('');
+  const [reviewText, setReviewText] = useState('');
+  const [isGpsTagged, setIsGpsTagged] = useState(true);
+  const [photoProofUrl, setPhotoProofUrl] = useState('');
+  const [localReviews, setLocalReviews] = useState<Review[]>(artisan.reviews || []);
+  const [reviewSubmittedMessage, setReviewSubmittedMessage] = useState(false);
 
   const isFlora = artisan.category === 'Indigenous Flora';
   const isAgri = artisan.category === 'Agriculture';
 
+  const ratingDescriptions: Record<number, string> = {
+    1: '1 Star - Needs Improvement',
+    2: '2 Stars - Fair Experience',
+    3: '3 Stars - Authentic & Good',
+    4: '4 Stars - Very High Quality',
+    5: '5 Stars - Exceptional Masterwork ★',
+  };
+
+  const handleRatingHover = (val: number) => {
+    setHoverRating(val);
+  };
+
+  const handleRatingLeave = () => {
+    setHoverRating(0);
+  };
+
+  const handleRatingClick = (val: number) => {
+    setRating(val);
+  };
+
+  const handleReviewSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewText.trim()) return;
+
+    const newReview: Review = {
+      id: `rev-${Date.now()}`,
+      author: reviewerName.trim() || 'Verified Buyer / Scout',
+      date: 'Just now',
+      rating,
+      text: reviewText.trim(),
+      verifiedGps: isGpsTagged 
+        ? `${artisan.district}, Jharkhand (GPS Verified: ${artisan.coordinates.lat.toFixed(4)}° N, ${artisan.coordinates.lng.toFixed(4)}° E)`
+        : `${artisan.district}, Jharkhand (Verified Purchase)`,
+      photoUrl: photoProofUrl.trim() || undefined,
+    };
+
+    const updated = [newReview, ...localReviews];
+    setLocalReviews(updated);
+    artisan.reviews = updated;
+    artisan.contributionsCount = (artisan.contributionsCount || 0) + 1;
+
+    if (onAddReview) {
+      onAddReview(artisan.id, newReview);
+    }
+
+    // Reset Form
+    setReviewText('');
+    setReviewerName('');
+    setPhotoProofUrl('');
+    setIsReviewFormOpen(false);
+    setReviewSubmittedMessage(true);
+    setTimeout(() => setReviewSubmittedMessage(false), 4000);
+
+    try {
+      confetti({
+        particleCount: 60,
+        spread: 60,
+        origin: { y: 0.7 },
+        colors: ['#974400', '#186a22', '#ffdbc9'],
+      });
+    } catch {}
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8 md:py-12 animate-in fade-in duration-300">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-10 pb-28 md:pb-16 animate-in fade-in duration-300">
+      {/* Back Button for mobile & desktop navigation */}
+      <div className="mb-6">
+        <button
+          id="artisan-profile-back-btn"
+          onClick={() => {
+            if (onBack) {
+              onBack();
+            } else {
+              window.history.back();
+            }
+          }}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-[#564338] hover:text-[#974400] hover:bg-[#fff1eb] border border-[#ddc1b3]/60 text-xs font-bold shadow-2xs transition-all cursor-pointer group active:scale-95"
+          aria-label="Back to Previous Page"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span>Back to Discovered Creators</span>
+        </button>
+      </div>
+
       {/* Profile Header Section */}
       <section className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start">
         {/* Left: Artisan Image (Aspect 4/5) */}
@@ -109,7 +213,7 @@ export const ArtisanProfileView: React.FC<ArtisanProfileViewProps> = ({
             <div className="bg-white p-6 rounded-2xl border border-[#ddc1b3]/40 card-shadow transition-all">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm font-semibold text-[#564338]">
-                  Trust Score
+                  Trust Score &amp; Rating
                 </span>
                 <ShieldCheck className="w-5 h-5 text-[#974400]" />
               </div>
@@ -126,8 +230,9 @@ export const ArtisanProfileView: React.FC<ArtisanProfileViewProps> = ({
                   />
                 </div>
               </div>
-              <p className="text-xs text-[#564338] mt-2 font-medium">
-                Highly verified authenticity via GPS on-site proof
+              <p className="text-xs text-[#564338] mt-2 font-medium flex items-center gap-1.5">
+                <span className="text-[#974400] font-bold">★ {artisan.trustRating}</span>
+                <span>• {localReviews.length} Verified Field Reviews</span>
               </p>
             </div>
 
@@ -135,7 +240,7 @@ export const ArtisanProfileView: React.FC<ArtisanProfileViewProps> = ({
             <div className="bg-white p-6 rounded-2xl border border-[#ddc1b3]/40 card-shadow transition-all">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm font-semibold text-[#564338]">
-                  Community Impact
+                  Community Provenance
                 </span>
                 <Users className="w-5 h-5 text-[#006e0c]" />
               </div>
@@ -153,7 +258,7 @@ export const ArtisanProfileView: React.FC<ArtisanProfileViewProps> = ({
                     {artisan.contributionsCount}
                   </span>
                   <span className="text-xs text-[#564338] font-medium">
-                    Contributions
+                    Field Logs
                   </span>
                 </div>
               </div>
@@ -212,7 +317,7 @@ export const ArtisanProfileView: React.FC<ArtisanProfileViewProps> = ({
             onClick={onOpenEncyclopediaModal}
             className="text-[#974400] font-sans text-sm font-semibold flex items-center gap-1.5 hover:underline cursor-pointer group self-start"
           >
-            <span>View Full Encyclopedia</span>
+            <span>View Full Knowledge Archive</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
@@ -253,165 +358,230 @@ export const ArtisanProfileView: React.FC<ArtisanProfileViewProps> = ({
       {/* Decorative Editorial Divider */}
       <div className="w-24 h-px bg-[#ddc1b3] mx-auto my-16" />
 
-      {/* Seen Through the Eyes of Buyers & Community (Gallery & Reviews) */}
-      <section>
-        <div className="text-center max-w-2xl mx-auto mb-10">
-          <h2 className="font-serif text-3xl md:text-4xl font-bold text-[#231914] mb-3">
-            Seen Through the Eyes of Community &amp; Visitors
-          </h2>
-          <p className="text-sm text-[#564338] leading-relaxed">
-            Authentic moments and creations documented by visitors and
-            contributors who have witnessed the craft firsthand.
-          </p>
-        </div>
-
-        {/* 4-Item Masonry Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          {/* Photo 1: Big Peacock Mural */}
-          <div className="sm:col-span-2 md:row-span-2 rounded-2xl overflow-hidden card-shadow relative group h-[340px] sm:h-[400px]">
-            <img
-              src={
-                artisan.gallery[0]?.url ||
-                'https://lh3.googleusercontent.com/aida-public/AB6AXuBpH6KffzLoKRc8cGg_rvodT0gbg0KedgdsHOKvili2SNxeQdWCLsm9BVRy8inJlNbH09XmyxCSWPrrdiDZcFmg7XZT0kCYXvOBPDmEFZ84-mu_xVxZ_VWtOu8lfWrGyykOUxJPWqWyYWGOsRUh2-dZu1ALnQujDIRv58mzXQgQRwTN1Psjk7dgRqR7rWV7hRqMLQhPd0N_YnbqHOSq-p0m44qpFSkAY9ALQ1b9aolKhEfE69wyQYg'
-              }
-              alt="Sohrai mural detail"
-              className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end p-4">
-              <span className="text-xs text-white bg-black/40 backdrop-blur-sm px-3 py-1 rounded-full">
-                Sohrai Mural • Mud Canvas
-              </span>
+      {/* 🌟 FEATURE 3: BUYER REVIEW & FIELD SCOUT SYSTEM */}
+      <section id="buyer-reviews-section">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
+          <div>
+            <div className="inline-block px-3 py-1 bg-[#feeae0] text-[#974400] text-xs font-bold uppercase tracking-wider rounded-full mb-2">
+              Verified Social Proof
             </div>
+            <h2 className="font-serif text-3xl md:text-4xl font-bold text-[#231914]">
+              Buyer Reviews &amp; Field Scout Logs
+            </h2>
+            <p className="text-sm text-[#564338] mt-1">
+              Field observations and buyer verification notes submitted on location.
+            </p>
           </div>
 
-          {/* Photo 2: Terracotta Pigment Bowls */}
-          <div className="rounded-2xl overflow-hidden card-shadow relative group h-[190px]">
-            <img
-              src={
-                artisan.gallery[1]?.url ||
-                'https://lh3.googleusercontent.com/aida-public/AB6AXuCtN_PLr84GzI5ggZM7Mj-eUZLAjN-qkAGR-uHUqARD8DPuA2K1AYfc2bxPen4w3EqldwKaIbyJ4iKmsprOLqX5Ma3fpO5SMxv4kRTKSBznZBBLjj6WMfXKqLqhq5PLUMoGlzfB_T1z-uC7y2p605Rl_n-vmG6C--U1Xk9Hkw_RcRkctDrXU08OlCmGSUsjnnAIQUiyT_VT8p1hXnfeRGVQ5TSrWRAS5wyaLoQ2LvCEZt0BxrgMC2Y'
-              }
-              alt="Natural earth pigments"
-              className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-3">
-              <span className="text-[11px] text-white bg-black/40 backdrop-blur-sm px-2.5 py-0.5 rounded-full">
-                Raw Earth Pigments
-              </span>
-            </div>
-          </div>
-
-          {/* Photo 3: Hands Painting Border */}
-          <div className="rounded-2xl overflow-hidden card-shadow relative group h-[190px]">
-            <img
-              src={
-                artisan.gallery[2]?.url ||
-                'https://lh3.googleusercontent.com/aida-public/AB6AXuBwbmGOZtSpGFJ2qbgJakNo7CiovgXD8EV6G7L47I5Jnc-odxxyHSpEjPk670ocLN1VGKTVlCCbSxY4axIsyMu6g3Nd4SOR_hWPQ1LQd6P1v35DgoG5230oYVs6eDnonP-cn_nuUPgTvSp4bFO3HviwHQBX2oqzEt9vMIXDbWeLLTGy5Wvhw0eChaYT6DYLw-2hTT7q9Qm7S2W7YiyzaPe5OCZhYwm_d9zjy0OkkRQSSN2eU6Eikow'
-              }
-              alt="Artisan hands painting"
-              className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-3">
-              <span className="text-[11px] text-white bg-black/40 backdrop-blur-sm px-2.5 py-0.5 rounded-full">
-                Traditional Datun Brushes
-              </span>
-            </div>
-          </div>
-
-          {/* Photo 4: Hazaribagh Village Courtyard */}
-          <div className="sm:col-span-2 rounded-2xl overflow-hidden card-shadow relative group h-[190px]">
-            <img
-              src={
-                artisan.gallery[3]?.url ||
-                'https://lh3.googleusercontent.com/aida-public/AB6AXuDrXmNZYTqyQRPh11niGOYRpukm9l3Xwppch_dIiKfssFnm2dsLkxlYSHvALmge412jCmWFxhI_J06GAifZxK5QbQ7SuLPT_dzgtesd4Q7do7dGZpjWh1YQqedd2vMxTTU-qSNNaeyNjCRvHV608K9GXIGBctHMzmlbQoA7aAfE3QNWyDM29TFY1FpQw0U0hs7HsAhzUXZ4mRFUJ3ZiZ23Rli7D03I_01t9sKSmHgRY1i5rkiTktqU'
-              }
-              alt="Hazaribagh Village Courtyard"
-              className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-3.5">
-              <span className="text-xs font-semibold text-white bg-[#231914]/80 px-3 py-1 rounded-md backdrop-blur-xs">
-                Hazaribagh Village
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* View All Contributions Button */}
-        <div className="text-center mt-10">
           <button
-            id="view-all-contributions-btn"
-            onClick={() => setShowAllReviews(!showAllReviews)}
-            className="px-8 py-3 rounded-full border border-[#8a7266] text-[#231914] font-sans text-sm font-semibold hover:bg-[#feeae0] transition-colors cursor-pointer inline-flex items-center gap-2"
+            id="write-review-toggle-btn"
+            onClick={() => setIsReviewFormOpen(!isReviewFormOpen)}
+            className="bg-[#974400] text-white px-6 py-3 rounded-full text-xs sm:text-sm font-bold hover:bg-[#bb5808] transition-all shadow-md active:scale-95 flex items-center gap-2 cursor-pointer shrink-0"
           >
-            <MessageSquare className="w-4 h-4 text-[#974400]" />
-            <span>
-              {showAllReviews
-                ? 'Hide Contributions'
-                : `View All ${artisan.contributionsCount} Contributions`}
-            </span>
+            <MessageSquare className="w-4 h-4" />
+            <span>{isReviewFormOpen ? 'Close Review Form' : 'Write a Review / Scout Log'}</span>
           </button>
         </div>
 
-        {/* Expanded Reviews Drawer */}
-        {showAllReviews && (
-          <div className="mt-8 bg-white p-6 sm:p-8 rounded-2xl border border-[#ddc1b3]/40 card-shadow animate-in fade-in duration-300">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h3 className="font-serif text-2xl font-bold text-[#231914]">
-                  Verified Scout Logs &amp; Field Stories
-                </h3>
-                <p className="text-xs text-[#564338]">
-                  Photographic proof and reviews documented by Heritage Scouts on-site.
-                </p>
-              </div>
-              <div className="bg-[#ebfbee] text-[#006e0c] text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-[#92fa83]">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>100% GPS Verified</span>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {artisan.reviews.map((rev) => (
-                <div
-                  key={rev.id}
-                  className="p-4 bg-[#fff1eb] rounded-xl border border-[#ddc1b3]/30"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-[#974400] text-white flex items-center justify-center font-bold text-xs">
-                        {rev.author[0]}
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-[#231914]">
-                          {rev.author}
-                        </div>
-                        <div className="text-[11px] text-[#006e0c] font-semibold flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" />
-                          <span>{rev.verifiedGps}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center text-[#974400] text-xs">
-                      {[...Array(rev.rating)].map((_, i) => (
-                        <Star key={i} className="w-3.5 h-3.5 fill-[#974400]" />
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-xs text-[#564338] leading-relaxed">
-                    {rev.text}
-                  </p>
-                  {rev.photoUrl && (
-                    <img
-                      src={rev.photoUrl}
-                      alt="Uploaded proof"
-                      className="mt-3 w-28 h-20 rounded-lg object-cover border border-[#ddc1b3]"
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
+        {/* Success Toast */}
+        {reviewSubmittedMessage && (
+          <div className="mb-6 p-4 bg-[#ebfbee] text-[#006e0c] rounded-2xl border border-[#92fa83] flex items-center gap-2 text-sm font-bold animate-in fade-in">
+            <CheckCircle2 className="w-5 h-5 shrink-0" />
+            <span>Thank you! Your verified review and field score have been published.</span>
           </div>
         )}
+
+        {/* Expandable Review & Rating Form */}
+        {isReviewFormOpen && (
+          <div className="mb-10 bg-[#fff8f6] rounded-3xl p-6 sm:p-8 border-2 border-[#974400]/40 card-shadow animate-in fade-in zoom-in-95">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h3 className="font-serif text-2xl font-bold text-[#231914]">
+                  Share Your Verified Review
+                </h3>
+                <p className="text-xs text-[#564338]">
+                  Help other conscious buyers and scouts discover authentic creations.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsReviewFormOpen(false)}
+                className="p-1.5 rounded-full hover:bg-white text-[#564338] cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleReviewSubmit} className="space-y-6">
+              {/* 5-Star Rating Component */}
+              <div>
+                <label className="block text-xs font-bold text-[#231914] uppercase tracking-wider mb-2">
+                  Select Rating <span className="text-[#974400]">*</span>
+                </label>
+                <div className="flex items-center gap-1.5" role="radiogroup" aria-label="Rating">
+                  {[1, 2, 3, 4, 5].map((starNum) => {
+                    const isFilled = (hoverRating || rating) >= starNum;
+                    return (
+                      <button
+                        key={starNum}
+                        type="button"
+                        id={`star-btn-${starNum}`}
+                        onMouseEnter={() => handleRatingHover(starNum)}
+                        onMouseLeave={handleRatingLeave}
+                        onClick={() => handleRatingClick(starNum)}
+                        className="p-1 text-2xl sm:text-3xl transition-transform hover:scale-120 cursor-pointer focus:outline-none"
+                        aria-label={`${starNum} stars`}
+                      >
+                        <Star
+                          className={`w-7 h-7 sm:w-8 sm:h-8 transition-colors ${
+                            isFilled
+                              ? 'text-[#974400] fill-[#974400]'
+                              : 'text-[#d1c4be] hover:text-[#974400]'
+                          }`}
+                        />
+                      </button>
+                    );
+                  })}
+                  <span className="ml-3 text-xs sm:text-sm font-bold text-[#974400]">
+                    {ratingDescriptions[hoverRating || rating]}
+                  </span>
+                </div>
+              </div>
+
+              {/* Reviewer Name & Contact */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[#231914] mb-1.5">
+                    Your Full Name <span className="text-[#974400]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={reviewerName}
+                    onChange={(e) => setReviewerName(e.target.value)}
+                    placeholder="e.g. Kunal Sharma or Scout Aanya"
+                    className="w-full px-4 py-2.5 bg-white rounded-xl text-sm font-semibold border border-[#ddc1b3] focus:border-[#974400] outline-none text-[#231914]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#231914] mb-1.5">
+                    Photo Proof URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={photoProofUrl}
+                    onChange={(e) => setPhotoProofUrl(e.target.value)}
+                    placeholder="https://images.unsplash.com/photo-..."
+                    className="w-full px-4 py-2.5 bg-white rounded-xl text-sm border border-[#ddc1b3] focus:border-[#974400] outline-none text-[#231914]"
+                  />
+                </div>
+              </div>
+
+              {/* Review Textarea with Counter */}
+              <div>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="block text-xs font-bold text-[#231914]">
+                    Your Feedback &amp; Authenticity Observations <span className="text-[#974400]">*</span>
+                  </label>
+                  <span className="text-[11px] font-bold text-[#8a7266]">
+                    {reviewText.length} / 500
+                  </span>
+                </div>
+                <textarea
+                  rows={4}
+                  maxLength={500}
+                  required
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  placeholder="Share details about the craft quality, natural pigments, interaction with the artisan, or on-site studio visit..."
+                  className="w-full p-4 bg-white rounded-xl text-sm border border-[#ddc1b3] focus:border-[#974400] outline-none text-[#231914] leading-relaxed"
+                />
+              </div>
+
+              {/* Verification and Submission Footer */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2">
+                <label className="flex items-center gap-2 text-xs font-semibold text-[#006e0c] cursor-pointer bg-[#ebfbee] px-3 py-2 rounded-xl border border-[#92fa83]">
+                  <input
+                    type="checkbox"
+                    checked={isGpsTagged}
+                    onChange={(e) => setIsGpsTagged(e.target.checked)}
+                    className="rounded text-[#006e0c] focus:ring-[#006e0c]"
+                  />
+                  <span>Tag GPS Coordinate &amp; Authenticity Badge</span>
+                </label>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsReviewFormOpen(false)}
+                    className="px-5 py-2.5 rounded-xl border border-[#ddc1b3] text-[#564338] text-xs font-bold hover:bg-white transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    id="submit-review-btn"
+                    className="bg-[#974400] text-white px-7 py-2.5 rounded-xl text-xs sm:text-sm font-bold hover:bg-[#bb5808] transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>Post Verified Review</span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* Reviews List */}
+        <div className="space-y-4">
+          {localReviews.map((rev) => (
+            <article
+              key={rev.id}
+              className="p-5 bg-white rounded-2xl border border-[#ddc1b3]/40 card-shadow transition-all"
+            >
+              <div className="flex justify-between items-start mb-2.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#974400] text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                    {rev.author[0]?.toUpperCase() || 'U'}
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-[#231914]">
+                      {rev.author}
+                    </h4>
+                    <div className="text-[11px] text-[#006e0c] font-semibold flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>{rev.verifiedGps}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col items-end">
+                  <div className="flex items-center text-[#974400] text-xs">
+                    {[...Array(rev.rating)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-[#974400]" />
+                    ))}
+                  </div>
+                  <span className="text-[10px] text-[#8a7266] mt-0.5">{rev.date}</span>
+                </div>
+              </div>
+
+              <p className="text-sm text-[#564338] leading-relaxed pl-13">
+                {rev.text}
+              </p>
+
+              {rev.photoUrl && (
+                <div className="pl-13 mt-3">
+                  <img
+                    src={rev.photoUrl}
+                    alt="Uploaded proof"
+                    className="w-36 h-24 rounded-xl object-cover border border-[#ddc1b3] shadow-xs"
+                  />
+                </div>
+              )}
+            </article>
+          ))}
+        </div>
       </section>
     </div>
   );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Artisan, LocalEvent } from '../types';
 import { HeritageHeatmap } from './HeritageHeatmap';
+import { RootsKnowledgeHubSection } from './RootsKnowledgeHubSection';
 import {
   CheckCircle2,
   ArrowRight,
@@ -13,6 +14,8 @@ import {
   Palette,
   Sprout,
   Radio,
+  BookOpen,
+  UserCheck,
 } from 'lucide-react';
 
 interface DiscoverViewProps {
@@ -20,10 +23,12 @@ interface DiscoverViewProps {
   events?: LocalEvent[];
   onSelectArtisan: (artisan: Artisan) => void;
   onExploreMapClick: () => void;
-  onPinCreatorClick: () => void;
+  onJoinContributorClick?: () => void;
+  onPinCreatorClick?: () => void;
   onRegisterArtisanClick: () => void;
   onViewAllCreators: () => void;
   onReportEventClick?: () => void;
+  onAddArtisan?: (artisan: Artisan) => void;
 }
 
 export const DiscoverView: React.FC<DiscoverViewProps> = ({
@@ -31,18 +36,21 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
   events,
   onSelectArtisan,
   onExploreMapClick,
+  onJoinContributorClick,
   onPinCreatorClick,
   onRegisterArtisanClick,
   onViewAllCreators,
   onReportEventClick,
+  onAddArtisan,
 }) => {
   const [categoryFilter, setCategoryFilter] = React.useState<
     'all' | 'Heritage Arts' | 'Agriculture' | 'Indigenous Flora'
   >('all');
 
+  const handleJoinContributor = onJoinContributorClick || onPinCreatorClick;
 
   return (
-    <div className="min-h-screen pb-24 md:pb-16 animate-in fade-in duration-300">
+    <div className="min-h-screen pb-28 md:pb-16 animate-in fade-in duration-300">
       {/* Hero Section */}
       <section className="hero-gradient min-h-[75vh] flex flex-col items-center justify-center px-6 py-16 text-center relative border-b border-[#ddc1b3]/30">
         <div className="max-w-4xl mx-auto space-y-6 z-10">
@@ -66,14 +74,14 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
 
           {/* Two Primary Hero CTAs */}
           <div className="pt-6 flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
-            {/* Button 1: Pin a Local Creator */}
+            {/* Button 1: Join as a Contributor */}
             <button
-              id="hero-pin-creator-btn"
-              onClick={onPinCreatorClick}
+              id="hero-join-contributor-btn"
+              onClick={handleJoinContributor}
               className="w-full sm:w-auto bg-[#974400] text-white px-8 py-3.5 rounded-full font-sans text-sm font-bold hover:bg-[#bb5808] transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-2"
             >
-              <MapPin className="w-4 h-4 text-[#ffdbc9]" />
-              <span>Pin a Local Creator</span>
+              <UserCheck className="w-4 h-4 text-[#ffdbc9]" />
+              <span>Join as Contributor</span>
             </button>
 
             {/* Button 2: Artisan Self-Registration Portal */}
@@ -93,7 +101,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           <div className="space-y-1.5">
             <div className="font-serif text-4xl sm:text-5xl font-bold text-[#974400]">
-              128+
+              {artisans.length}+
             </div>
             <div className="text-xs font-bold text-[#564338] uppercase tracking-wider">
               Verified Creators &amp; Botanical Stewards
@@ -120,7 +128,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
 
           <div className="space-y-1.5">
             <div className="font-serif text-4xl sm:text-5xl font-bold text-[#974400]">
-              94%
+              98%
             </div>
             <div className="text-xs font-bold text-[#564338] uppercase tracking-wider">
               Trust Score
@@ -129,15 +137,15 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
         </div>
       </section>
 
-      {/* Interactive Heritage Heatmap Section */}
+      {/* Interactive Heritage Heatmap Section with Pin Dropping */}
       <section id="heritage-heatmap-section" className="max-w-7xl mx-auto px-6 py-16">
         <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-baseline gap-4">
           <div>
             <h2 className="font-serif text-3xl md:text-4xl font-bold text-[#231914] mb-1">
-              Heritage Heatmap
+              Interactive Heritage Heatmap
             </h2>
             <p className="text-sm text-[#564338]">
-              Live geotagged verification cluster across Jharkhand's indigenous crafts, heirloom farms, and sacred botanical preserves.
+              Live geotagged verification cluster across Jharkhand. Click anywhere on the map to drop a pin and record an artisan.
             </p>
           </div>
 
@@ -155,7 +163,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                   : 'bg-[#feeae0] text-[#231914] hover:bg-[#f2dfd5]'
               }`}
             >
-              <Palette className="w-3 h-3 text-[#974400] group-hover:text-white" />
+              <Palette className="w-3.5 h-3.5 text-[#974400]" />
               <span>Heritage Arts</span>
             </button>
 
@@ -171,7 +179,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                   : 'bg-[#feeae0] text-[#231914] hover:bg-[#f2dfd5]'
               }`}
             >
-              <Trees className="w-3 h-3 text-[#186a22]" />
+              <Trees className="w-3.5 h-3.5 text-[#186a22]" />
               <span>Agriculture</span>
             </button>
 
@@ -193,7 +201,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
           </div>
         </div>
 
-        {/* Heatmap Container */}
+        {/* Heatmap Container with Pin Drop Engine */}
         <HeritageHeatmap
           artisans={artisans}
           events={events}
@@ -201,8 +209,14 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
           selectedCategoryFilter={categoryFilter}
           onFilterChange={setCategoryFilter}
           onReportEventClick={onReportEventClick}
+          onAddArtisan={onAddArtisan}
         />
       </section>
+
+      {/* 🌟 FEATURE 4: Roots Knowledge Hub Section Embedded in Discover View */}
+      <RootsKnowledgeHubSection
+        onExploreDistrictCreators={() => onViewAllCreators()}
+      />
 
       {/* Trending Artisans Section */}
       <section className="py-16 bg-[#fff1eb] border-y border-[#ddc1b3]/30">
@@ -227,9 +241,9 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
             </button>
           </div>
 
-          {/* Cards Horizontal Carousel / Grid */}
+          {/* Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {artisans.map((artisan) => (
+            {artisans.slice(0, 8).map((artisan) => (
               <div
                 key={artisan.id}
                 onClick={() => onSelectArtisan(artisan)}

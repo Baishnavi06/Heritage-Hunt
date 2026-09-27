@@ -25,7 +25,7 @@ export const CreatorsView: React.FC<CreatorsViewProps> = ({
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8 md:py-12 animate-in fade-in duration-300 pb-24 md:pb-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12 animate-in fade-in duration-300 pb-28 md:pb-16">
       {/* Header */}
       <div className="max-w-3xl mb-8">
         <span className="text-xs font-bold text-[#974400] uppercase tracking-wider block mb-1">

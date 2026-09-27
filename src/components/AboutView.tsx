@@ -13,16 +13,16 @@ export const AboutView: React.FC<AboutViewProps> = ({
   onRegisterArtisan,
 }) => {
   return (
-    <div className="max-w-5xl mx-auto px-6 py-12 md:py-16 animate-in fade-in duration-300 pb-28 md:pb-16">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 md:py-16 animate-in fade-in duration-300 pb-28 md:pb-16">
       {/* Title */}
-      <div className="text-center max-w-3xl mx-auto mb-12">
+      <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12">
         <span className="text-xs font-bold text-[#974400] uppercase tracking-wider block mb-2">
           Roots &amp; Mission
         </span>
-        <h1 className="font-serif text-4xl sm:text-5xl font-bold text-[#231914] mb-4">
+        <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[#231914] mb-4">
           Why Heritage Hunt Exists
         </h1>
-        <p className="text-base text-[#564338] leading-relaxed">
+        <p className="text-sm sm:text-base text-[#564338] leading-relaxed">
           India's rich indigenous art, organic agricultural heritage, and rare native flora are threatened by
           machine-made replicas, biopiracy, and lack of verified provenance. Heritage Hunt builds a crowd-sourced geospatial registry for
           every master artisan, heirloom cultivator, and tribal botanical steward.
@@ -30,7 +30,7 @@ export const AboutView: React.FC<AboutViewProps> = ({
       </div>
 
       {/* 3 Core Pillars */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 md:mb-16">
         <div className="bg-white p-6 rounded-2xl border border-[#ddc1b3]/40 card-shadow">
           <div className="w-12 h-12 rounded-xl bg-[#feeae0] text-[#974400] flex items-center justify-center mb-4">
             <Compass className="w-6 h-6" />
@@ -69,25 +69,34 @@ export const AboutView: React.FC<AboutViewProps> = ({
       </div>
 
       {/* Contributor Call Banner */}
-      <div className="bg-[#fff1eb] rounded-2xl p-8 sm:p-12 border border-[#ddc1b3]/50 text-center editorial-shadow">
-        <h2 className="font-serif text-3xl font-bold text-[#231914] mb-3">
+      <div className="bg-[#fff1eb] rounded-3xl p-6 sm:p-10 md:p-12 border border-[#ddc1b3]/50 text-center editorial-shadow">
+        <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#231914] mb-3">
           Become a Heritage Scout
         </h2>
-        <p className="text-sm text-[#564338] max-w-xl mx-auto mb-6 leading-relaxed">
+        <p className="text-xs sm:text-sm text-[#564338] max-w-xl mx-auto mb-6 leading-relaxed">
           Are you traveling to rural Jharkhand, Santhal Parganas, or indigenous agro-clusters? Help us map and verify artisans on the ground.
         </p>
-        <div className="flex flex-col sm:flex-row justify-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-3.5">
           <button
+            id="about-join-scout-btn"
             onClick={onJoinContributor}
-            className="bg-[#974400] text-white px-8 py-3.5 rounded-full text-sm font-semibold hover:bg-[#bb5808] transition-all shadow-md cursor-pointer"
+            className="w-full sm:w-auto bg-[#974400] text-white px-8 py-3.5 rounded-full text-xs sm:text-sm font-semibold hover:bg-[#bb5808] transition-all shadow-md active:scale-95 cursor-pointer"
           >
             Join as Contributor
           </button>
           <button
+            id="about-artisan-register-btn"
             onClick={onRegisterArtisan}
-            className="border border-[#974400] text-[#974400] px-8 py-3.5 rounded-full text-sm font-semibold hover:bg-white transition-colors cursor-pointer"
+            className="w-full sm:w-auto border border-[#974400] text-[#974400] px-8 py-3.5 rounded-full text-xs sm:text-sm font-semibold hover:bg-white transition-colors cursor-pointer active:scale-95"
           >
             Are you an Artisan? Register Here
+          </button>
+          <button
+            id="about-explore-map-btn"
+            onClick={onExploreMap}
+            className="w-full sm:w-auto bg-white border border-[#ddc1b3] text-[#564338] px-6 py-3.5 rounded-full text-xs sm:text-sm font-semibold hover:text-[#974400] transition-colors cursor-pointer active:scale-95"
+          >
+            Explore Heatmap
           </button>
         </div>
       </div>

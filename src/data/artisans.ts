@@ -1,4 +1,4 @@
-import { Artisan, EncyclopediaEntry } from '../types';
+import { Artisan, EncyclopediaEntry, DistrictKnowledge } from '../types';
 
 export const ARTISANS: Artisan[] = [
   {
@@ -394,3 +394,188 @@ export const ENCYCLOPEDIA: EncyclopediaEntry[] = [
     traditionalUse: 'Tribal pharmacology, sacred grove seed regeneration, famine resilience & micro-nutrient sovereignty',
   },
 ];
+
+export const DISTRICT_KNOWLEDGE_DATA: Record<string, DistrictKnowledge> = {
+  hazaribagh: {
+    districtKey: 'hazaribagh',
+    districtName: 'Hazaribagh District',
+    state: 'Jharkhand',
+    primaryArtForm: 'Sohrai & Khovar Ritual Wall Murals (GI Tagged)',
+    heroImage:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuBpH6KffzLoKRc8cGg_rvodT0gbg0KedgdsHOKvili2SNxeQdWCLsm9BVRy8inJlNbH09XmyxCSWPrrdiDZcFmg7XZT0kCYXvOBPDmEFZ84-mu_xVxZ_VWtOu8lfWrGyykOUxJPWqWyYWGOsRUh2-dZu1ALnQujDIRv58mzXQgQRwTN1Psjk7dgRqR7rWV7hRqMLQhPd0N_YnbqHOSq-p0m44qpFSkAY9ALQ1b9aolKhEfE69wyQYg',
+    heroCaption: 'Natural earth ochre murals painted by women during post-harvest Sohrai & Khovar wedding cycles',
+    history:
+      "Hazaribagh's indigenous mural traditions date back over 5,000 years to the prehistoric rock art sites of Isco, Satpahar, and Thethangi. Practiced by tribal women matriarchs (Santhal, Munda, Oraon, Prajapati, and Ganju), this art utilizes 'Dhudhi' white clay and wild red ochre 'Lal Mati' applying motifs using broken datun twigs and cloth rags without chemical paints.",
+    culturalSignificance:
+      'Traditionally painted onto sun-baked mud walls to celebrate cattle blessing (Pashupati), harvest fertility, and marital unions.',
+    indigenousMaterials: [
+      'Dhudhi Mati (White Kaolin Clay)',
+      'Lal Mati (Red Hematite Ochre)',
+      'Pila Mati (Yellow Earth Ochre)',
+      'Charcoal & Manganese Black',
+      'Wild Neem / Datun Twig Brushes',
+      'Paddy Comb Sgraffito Scrapers',
+    ],
+    subForms: [
+      {
+        name: 'Khovar Bridal Sgraffito',
+        summary: 'Comb-cut sgraffito technique etched onto black and white mud slips during marriage seasons.',
+        imageUrl:
+          'https://lh3.googleusercontent.com/aida-public/AB6AXuCWzDtyROwXMa51hS3Le6kWkCnluiF5Ip_1Nif1wKNa-1BC4DM1u1SdaHMYP8IfMpLtKKHH_Rv_Aj_1EVc-PSWP_drp4jb3aw-4nqKYECe2jzypACKwwxLCGnO6V4ZBWAjvqdxka-T-mFDii7uUsKfqFTUik_4E9aHC0vTmNTma_vVi-Os5GSE-4RJjSRIyjw3HuIGRjsOy5c8M8xVtTa5J3K_pf_VD_CCAOr6pS6wvRvgPK-KVxZs',
+      },
+      {
+        name: 'Sohrai Harvest Animal Murals',
+        summary: 'Painted post-Diwali celebrating horned cattle, sacred peacocks, forest spirits, and fertility.',
+        imageUrl:
+          'https://lh3.googleusercontent.com/aida-public/AB6AXuBpH6KffzLoKRc8cGg_rvodT0gbg0KedgdsHOKvili2SNxeQdWCLsm9BVRy8inJlNbH09XmyxCSWPrrdiDZcFmg7XZT0kCYXvOBPDmEFZ84-mu_xVxZ_VWtOu8lfWrGyykOUxJPWqWyYWGOsRUh2-dZu1ALnQujDIRv58mzXQgQRwTN1Psjk7dgRqR7rWV7hRqMLQhPd0N_YnbqHOSq-p0m44qpFSkAY9ALQ1b9aolKhEfE69wyQYg',
+      },
+    ],
+  },
+  ranchi: {
+    districtKey: 'ranchi',
+    districtName: 'Ranchi & Khunti Plateau',
+    state: 'Jharkhand',
+    primaryArtForm: 'Paitkar Scroll Art & Sacred Wood Sculptures',
+    heroImage:
+      'https://images.unsplash.com/photo-1582562124811-c09040d0a901?auto=format&fit=crop&w=1000&q=80',
+    heroCaption: 'Ancient scroll painting depicting tribal mythology, afterlife journeys, and folk ballads',
+    history:
+      'Paitkar scroll painting is celebrated as one of the oldest narrative folk traditions of Eastern India. Using gum binders extracted from the neem tree, mahua bark, and pulverized river stones, itinerant bard storytellers sing ancestral legends while unfurling handmade bark and cotton scrolls.',
+    culturalSignificance:
+      'Serves as community oral memory, ritual mourning rites, and celebrations of ancestral spirits at seasonal council haats.',
+    indigenousMaterials: [
+      'Neem Tree Gum Binder',
+      'Mahua Tree Bark Pigment',
+      'Crushed Laterite Mineral Stone',
+      'Wild Goat Hair Quill Brushes',
+      'Handmade Rice Straw Bark Paper',
+    ],
+    subForms: [
+      {
+        name: 'Paitkar Narrative Scrolls',
+        summary: 'Step-by-step pictorial panels recounting Santhal epics and moral journeys of departed souls.',
+      },
+      {
+        name: 'Munda Karam Totem Carving',
+        summary: 'Sacred ritualistic poles and grain storage pillars carved from venerable Sal and Karam timber.',
+      },
+    ],
+  },
+  khunti: {
+    districtKey: 'khunti',
+    districtName: 'Khunti Agro-Heritage Cluster',
+    state: 'Jharkhand',
+    primaryArtForm: 'Indigenous Heirloom Seed Banking & Organic Paddy',
+    heroImage:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuAZvCYssfRmZev96XVDUFeqNFKTnine1SZjT48gfVqo5ocO8Sor2XWB0zOPMjRGYaSlcShKE3OoLQ3AdKkEu-kbt3lItMlBYn_UwWYLZit9K1QvK2__o6lddDFnHtVugJV636BjhRMIxNo8WlgTt74KTqGJ0vmnIcP_dXmN_ITwx98cImDIOUPn1V4nBf-llsZks2lgN8cJTQbDDPjKqf3MF2vGkz9PgDqpdQdEYyeK1E6EpFWcDts',
+    heroCaption: 'Preservation of over 30 indigenous drought-resilient rice & minor millet landraces',
+    history:
+      'Khunti is the historic heartland of the Munda community and the legendary freedom fighter Birsa Munda. For centuries, farmers here have nurtured rainfed terraced valleys without chemical pesticides, breeding resilient indigenous varieties that withstand extreme climatic fluctuations.',
+    culturalSignificance:
+      'Sustains tribal self-sufficiency, sacred Sarhul seed-blessing festivals, and community grain sharing networks.',
+    indigenousMaterials: [
+      'Birsa Dhan & Danigora Seeds',
+      'Kalamdani Aromatic Landrace',
+      'Jeevamrit Fermented Bio-compost',
+      'Woven Bamboo Seed Storage Morhas',
+    ],
+    subForms: [
+      {
+        name: 'Community Seed Banks',
+        summary: 'Peer-to-peer exchange networks safeguarding disappearing ancestral germplasm.',
+      },
+      {
+        name: 'Biodynamic Agro-Forestry',
+        summary: 'Multi-tiered cultivation of pulses, dryland yams, and lac host trees (Kusum & Ber).',
+      },
+    ],
+  },
+  dumka: {
+    districtKey: 'dumka',
+    districtName: 'Dumka & Santhal Pargana',
+    state: 'Jharkhand',
+    primaryArtForm: 'Santhali Bamboo Weaving & Terracotta Haat Crafts',
+    heroImage:
+      'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=1000&q=80',
+    heroCaption: 'Intricate bamboo winnowing fans, grain vessels, and earthen ritual pottery',
+    history:
+      'In the forested hills of Dumka and Rajmahal, Santhali artisans have perfected sustainable bamboo craftsmanship over generations. Selecting green hillside bamboo, they create lightweight, flexible, and extremely durable tools for fishing, agriculture, and music.',
+    culturalSignificance:
+      'Essential for agrarian self-reliance, Baha spring dance celebrations, and weekly village haat markets.',
+    indigenousMaterials: [
+      'Green Hill Bamboo (Bans)',
+      'Wild Sal Tree Leaf Twine',
+      'River Silt Red Clay',
+      'Mustard Seed Polishing Oil',
+    ],
+    subForms: [
+      {
+        name: 'Kula & Dala Grain Baskets',
+        summary: 'Precision geometric basketry woven to store heirloom grains resistant to insect pests.',
+      },
+      {
+        name: 'Tirio & Tumdak Instruments',
+        summary: 'Tribal bamboo flutes and terracotta two-sided drums tuned to sacred rhythms.',
+      },
+    ],
+  },
+  'east-singhbhum': {
+    districtKey: 'east-singhbhum',
+    districtName: 'East Singhbhum (Ghatshila)',
+    state: 'Jharkhand',
+    primaryArtForm: 'Dhokra Lost-Wax Bell Metal Casting',
+    heroImage:
+      'https://images.unsplash.com/photo-1606744824163-985d376605aa?auto=format&fit=crop&w=1000&q=80',
+    heroCaption: 'Ancient non-ferrous lost-wax metal figurines crafted with beeswax threads',
+    history:
+      'Dhokra casting is an ancient lost-wax technique practiced by nomadic Malhor and metallurgical artisans in Ghatshila and Singhbhum for more than 4,000 years, retaining unbroken stylistic ties with the Indus Valley Dancing Girl figurine.',
+    culturalSignificance:
+      'Crafts protective village guardian totems, deity figurines, measuring vessels (Paila), and ceremonial jewelry.',
+    indigenousMaterials: [
+      'Natural Forest Beeswax',
+      'Anthill Mud & Clay Cores',
+      'Recycled Bell Metal & Brass',
+      'Rice Husk Fuel for Kiln Smelting',
+    ],
+    subForms: [
+      {
+        name: 'Tribal Deities & Elephants',
+        summary: 'Filigree-detailed bell metal totems representing forest gods and elephants.',
+      },
+      {
+        name: 'Dokra Paila Measuring Bowls',
+        summary: 'Traditional heirloom grain measurement vessels etched with geometric spiral motifs.',
+      },
+    ],
+  },
+  gumla: {
+    districtKey: 'gumla',
+    districtName: 'Gumla & Netarhat Hills',
+    state: 'Jharkhand',
+    primaryArtForm: 'Rare Ethnobotanical Flora & Wild Millets',
+    heroImage:
+      'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=1000&q=80',
+    heroCaption: 'Medicinal forest flora, wild tubers (Gethi), and drought-hardy Gondli millets',
+    history:
+      'Surrounded by pristine sal forests and bauxite plateaus (Pats), Gumla preserves ancestral ethnobotanical pharmacology. Asur and Oraon elders maintain sacred Sarna groves that protect wild food flora, rare medicinal roots (Kalmegh, Satavar), and climate-hardy minor millets.',
+    culturalSignificance:
+      'Supplies wild nutritional sovereignty, natural remedies, and sacred herbal offerings during seasonal festivals.',
+    indigenousMaterials: [
+      'Gondli (Little Millet Landraces)',
+      'Wild Kalmegh & Satavar Roots',
+      'Charak Gethi Forest Yams',
+      'Mahua Blossom Nectar',
+    ],
+    subForms: [
+      {
+        name: 'Sarna Sacred Grove Conservation',
+        summary: 'Community forest reserves strictly protected as living wild gene sanctuaries.',
+      },
+      {
+        name: 'Indigenous Minor Millets',
+        summary: 'Cultivation of ultra-low water requirement Gondli and Madua grains.',
+      },
+    ],
+  },
+};
+

@@ -1,7 +1,8 @@
 import React from 'react';
+import { ViewType } from '../types';
 
 interface FooterProps {
-  onNavigate: (view: 'discover' | 'map' | 'creators' | 'about' | 'buyer-profile' | 'artisan-register') => void;
+  onNavigate: (view: ViewType) => void;
   onJoinContributor: () => void;
 }
 

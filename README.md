@@ -120,7 +120,7 @@ This project was built for the Smart India Hackathon internal round by a team of
 
 * Baishnavi Kumari
 * Pallavee
-* Aastha Khasyap
+* Aastha Kashyap
 * Astha Gupta
 * Khushi Kumari
 * Subhadra Murmu
